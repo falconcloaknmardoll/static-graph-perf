@@ -1,31 +1,46 @@
 """
 model.py
 --------
-Phase 1 Baseline: GraphSAGE + Global Mean Pool for TPUGraphs runtime prediction.
+GraphSAGE baseline with residual connections for TPUGraphs runtime prediction.
 
 Architecture
 ~~~~~~~~~~~~
-  Input (N, 158)  ← 140-dim base features + 18-dim config features (Early-Join)
+  Input (N, 158)  ← 140-dim base features + 18-dim config features × 100 (Early-Join)
+      ↓
+  Linear(158→128)                                    input projection
       ↓  × 3
-  SAGEConv → BatchNorm1d → ReLU → Dropout(0.1)          node-level, (N, 128)
+  SAGEConv(128→128) + BN(no running stats) + LeakyReLU + Dropout + residual
       ↓
-  global_mean_pool                                         graph-level, (K, 128)
+  global_mean_pool  (all nodes)      (K, 128)
+  global_mean_pool  (config nodes)   (K, 128)
+  concat → (K, 256)
       ↓
-  Linear(128, 64) → ReLU → Dropout(0.1) → Linear(64, 1)  scalar score per config
+  Linear(256→64) + ReLU + Dropout + Linear(64→1)   scalar per config
 
-Known limitations (Phase 1 — intentional)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  • 3-layer receptive field vs ~80-hop graph diameter (from analyze_topology.py):
-    nodes > 3 hops apart have zero Jacobian. The model is blind to most of the
-    graph. This is the primary motivation for DiffPool in Phase 2.
+Key design notes
+~~~~~~~~~~~~~~~~
+  • BatchNorm with track_running_stats=False: BN always uses the *current batch*
+    statistics (both in train and eval mode).  Default BN accumulates running
+    mean/var during training and switches to those in eval — but the base node
+    features span [-2, 26M], so running stats accumulated over 69 training graphs
+    are often wrong for any individual val graph.  Setting track_running_stats=False
+    makes BN behaviour identical in train and eval: normalise by whatever batch
+    you have right now.  Requires eval batches of ≥ 2 items (eval_batch=32 in
+    train.py satisfies this).
 
-  • Global mean pool dilutes the config-node signal: for AlexNet (N=372, K=26
-    config nodes), only 26/372 = 7% of the pooled embedding carries
-    configuration-specific information. The remaining 93% is identical across
-    all 29,144 configurations of that graph.
+  • Residual connections: x_{l+1} = x_l + dropout(LeakyReLU(BN(SAGEConv(x_l)))).
+    The additive skip keeps config features (100x-amplified at input) alive
+    through all 3 GNN layers.  Residuals also stabilise gradients without needing
+    the learning-rate surgery that's required in the no-norm variant.
 
-Both limitations are kept deliberately to reproduce Google's published baseline
-before measuring the delta from hierarchical pooling in Phase 2.
+  • LeakyReLU (negative_slope=0.01): prevents dead neurons that occur when
+    large initial activations push units into negative territory and keep them
+    stuck.
+
+  • Dual pooling: all-node pool (context) + config-node-only pool (config signal).
+    Without the config-only pool the ~7% of configurable nodes are diluted 14:1
+    by non-configurable nodes in global_mean_pool, making configurations
+    indistinguishable.
 """
 
 from __future__ import annotations
@@ -37,23 +52,16 @@ from torch_geometric.nn import SAGEConv, global_mean_pool
 
 
 class BaselineGraphSAGE(nn.Module):
-    """GraphSAGE encoder + global mean readout for single-scalar scoring.
-
-    Each forward pass receives a PyG-collated batch containing K configurations
-    of the same computation graph (enforced by SingleGraphBatchSampler in
-    train.py).  The model produces one score per configuration; higher scores
-    indicate a predicted faster (lower-latency) execution.
+    """GraphSAGE encoder with residual connections + dual pooling.
 
     Parameters
     ----------
     in_channels : int
-        Input node feature dimension.  Default 158 = 140 (base) + 18 (config,
-        Early-Join scattered from node_config_feat).
+        Input node feature dimension (158 = 140 base + 18 config × 100).
     hidden_channels : int
-        Width of all GNN layers and the first MLP layer.  Default 128.
+        GNN and first MLP hidden width.  Default 128.
     dropout : float
-        Dropout probability after each GNN activation and inside the MLP.
-        Default 0.1.
+        Dropout probability after each GNN activation and in the MLP.
     """
 
     def __init__(
@@ -64,28 +72,29 @@ class BaselineGraphSAGE(nn.Module):
     ) -> None:
         super().__init__()
 
-        # ── GNN Encoder: 3 × SAGEConv ─────────────────────────────────────
-        # SAGEConv computes:  h_v' = W1·h_v + W2·mean{h_u : u ∈ N(v)}
-        # BatchNorm1d operates over all nodes across the full batch
-        # (total_nodes = K × N), which is large enough for stable statistics.
+        # ── Input projection ──────────────────────────────────────────────────
+        # Brings 158-dim Early-Join features to hidden_channels so that all
+        # subsequent residual additions are between equal-dimensional tensors.
+        self.input_proj = nn.Linear(in_channels, hidden_channels)
+
+        # ── GNN Encoder: 3 × SAGEConv with BatchNorm (no running stats) ──────
         self.convs = nn.ModuleList([
-            SAGEConv(in_channels,      hidden_channels),   # layer 1
-            SAGEConv(hidden_channels,  hidden_channels),   # layer 2
-            SAGEConv(hidden_channels,  hidden_channels),   # layer 3
+            SAGEConv(hidden_channels, hidden_channels),
+            SAGEConv(hidden_channels, hidden_channels),
+            SAGEConv(hidden_channels, hidden_channels),
         ])
+        # track_running_stats=False: always use current-batch statistics.
+        # Eliminates the train/eval BN mismatch caused by diverse graph scales.
         self.bns = nn.ModuleList([
-            nn.BatchNorm1d(hidden_channels),
-            nn.BatchNorm1d(hidden_channels),
-            nn.BatchNorm1d(hidden_channels),
+            nn.BatchNorm1d(hidden_channels, track_running_stats=False),
+            nn.BatchNorm1d(hidden_channels, track_running_stats=False),
+            nn.BatchNorm1d(hidden_channels, track_running_stats=False),
         ])
         self.dropout = nn.Dropout(p=dropout)
 
-        # ── MLP Head: 2 linear layers → scalar ────────────────────────────
-        # Operates on pooled graph-level embeddings (shape: K × hidden).
-        # No BatchNorm here: at this stage the "batch size" is configs_per_batch
-        # (16–32), which is too small for reliable BN running statistics.
+        # ── MLP Head ──────────────────────────────────────────────────────────
         self.mlp = nn.Sequential(
-            nn.Linear(hidden_channels, hidden_channels // 2),
+            nn.Linear(hidden_channels * 2, hidden_channels // 2),
             nn.ReLU(),
             nn.Dropout(p=dropout),
             nn.Linear(hidden_channels // 2, 1),
@@ -93,40 +102,53 @@ class BaselineGraphSAGE(nn.Module):
 
     def forward(
         self,
-        x: torch.Tensor,           # (total_nodes, in_channels)
-        edge_index: torch.Tensor,  # (2, total_edges)
-        batch: torch.Tensor,       # (total_nodes,)  — PyG batch vector
+        x: torch.Tensor,                # (total_nodes, in_channels)
+        edge_index: torch.Tensor,       # (2, total_edges)
+        batch: torch.Tensor,            # (total_nodes,)
+        config_mask: torch.Tensor,      # (total_nodes,) bool
     ) -> torch.Tensor:
-        """
-        Parameters
-        ----------
-        x : Tensor, shape (total_nodes, 158)
-            Stacked node features for all K configurations in the batch.
-            total_nodes = K × N (same graph repeated K times with different
-            config features).
-        edge_index : Tensor, shape (2, total_edges)
-            Stacked and offset edge indices (PyG DataLoader handles offset).
-        batch : Tensor, shape (total_nodes,)
-            Assigns each node to its configuration index in [0, K-1].
+        """Returns shape (K,) — one score per configuration in the batch."""
 
-        Returns
-        -------
-        scores : Tensor, shape (K,)
-            One predicted ranking score per configuration.
-            Higher score → model predicts faster (lower-latency) execution.
-        """
-        # ── 3 rounds of message passing ────────────────────────────────────
+        # ── Input projection ──────────────────────────────────────────────────
+        x = F.leaky_relu(self.input_proj(x), negative_slope=0.01)
+
+        # ── 3 GNN layers with residual connections ────────────────────────────
         for conv, bn in zip(self.convs, self.bns):
-            x = conv(x, edge_index)   # aggregate from neighbours
-            x = bn(x)                 # normalise across all nodes in batch
-            x = F.relu(x)
-            x = self.dropout(x)
+            h = conv(x, edge_index)
+            h = bn(h)
+            h = F.leaky_relu(h, negative_slope=0.01)
+            h = self.dropout(h)
+            x = x + h   # residual: config signal survives all 3 layers
 
-        # ── Graph-level readout ────────────────────────────────────────────
-        # global_mean_pool: (total_nodes, H) → (K, H)
-        # Each row is the mean node embedding for one configuration.
-        graph_emb = global_mean_pool(x, batch)  # (K, hidden_channels)
+        # ── Dual graph-level readout ──────────────────────────────────────────
+        all_emb    = global_mean_pool(x, batch)                        # (K, H)
+        config_emb = global_mean_pool(x[config_mask], batch[config_mask])  # (K, H)
+        graph_emb  = torch.cat([all_emb, config_emb], dim=-1)         # (K, 2H)
 
-        # ── Scalar score per configuration ─────────────────────────────────
-        scores = self.mlp(graph_emb).squeeze(-1)  # (K,)
-        return scores
+        return self.mlp(graph_emb).squeeze(-1)                         # (K,)
+
+
+class BaselineGraphSAGE_Large(BaselineGraphSAGE):
+    """Parameter-matched wide baseline for the DiffPool ablation study.
+
+    hidden_channels=172 → 236,157 params; HierarchicalGraphSAGE at h=128
+    has 235,553 params (delta: +604, <0.3%).  Architecture is otherwise
+    identical (3× SAGEConv, dual pooling, same MLP structure), so any τ
+    gap between this model and DiffPool is attributable to hierarchy, not
+    to parameter capacity.
+
+    Use with --model wide-baseline in train.py.
+    """
+
+    HIDDEN: int = 172   # the unique hidden_channels that matches DiffPool param count
+
+    def __init__(
+        self,
+        in_channels: int = 158,
+        dropout: float = 0.0,
+    ) -> None:
+        super().__init__(
+            in_channels=in_channels,
+            hidden_channels=self.HIDDEN,
+            dropout=dropout,
+        )

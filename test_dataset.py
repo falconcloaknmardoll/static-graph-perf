@@ -28,7 +28,13 @@ import torch
 from torch.utils.data import Subset
 from torch_geometric.loader import DataLoader
 
-from dataset import TPUGraphDataset
+from dataset import (
+    TPUGraphDataset,
+    MXU_OPS,
+    MEM_OPS,
+    MXU_WINDOW,
+    MEM_WINDOW,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -130,7 +136,7 @@ def test_early_join_integrity(dataset: TPUGraphDataset) -> None:
     )
 
     # ── build config-node mask from the raw npz ────────────────────────────
-    npz = dataset._npz_handles[file_idx]
+    npz = dataset._get_handle(file_idx)
     config_ids = torch.from_numpy(np.array(npz["node_config_ids"], dtype=np.int64))
     config_mask = torch.zeros(N, dtype=torch.bool)
     config_mask[config_ids] = True  # True  → config-affected node
@@ -318,4 +324,75 @@ def test_single_graph_batching(dataset: TPUGraphDataset) -> None:
         assert actual_count == expected_count, (
             f"Config {local_idx} (flat idx {flat_idx}): batch vector assigns "
             f"{actual_count} nodes but num_nodes={expected_count}."
+        )
+
+
+# ===========================================================================
+# Test 7 – Phase 3: Hardware-Aware Structural Edges
+# ===========================================================================
+
+def test_structural_edges(dataset: TPUGraphDataset) -> None:
+    """
+    Validate the Granite-style structural-edge augmentation on 5 graphs:
+
+      a) Alignment   – edge_attr has shape (E', 3) and E' matches edge_index's
+                       second dimension (one attribute row per edge).
+      b) One-hot     – every edge_attr row sums to exactly 1.0 (valid one-hot,
+                       no edge left untyped or double-typed).
+      c) Bounded     – the augmentation never explodes into an O(N²) clique:
+                          E' ≤ E_orig + 2·W_mxu·N_mxu + 2·W_mem·N_mem
+                       where N_mxu / N_mem are the counts of MXU / MEM opcode
+                       nodes and E_orig is the raw data-flow edge count.
+    """
+    rng = random.Random(7)
+    file_indices = rng.sample(range(dataset.num_files), k=min(5, dataset.num_files))
+
+    for file_idx in file_indices:
+        flat_idx = _indices_for_graph(dataset, file_idx)[0]
+        data = dataset[flat_idx]
+
+        ei = data.edge_index            # (2, E')
+        ea = data.edge_attr             # (E', 3)
+        e_prime = ei.shape[1]
+
+        # ── (a) alignment ──────────────────────────────────────────────────
+        assert ea.dim() == 2 and ea.shape[1] == 3, (
+            f"file {file_idx}: edge_attr must be (E', 3), got {tuple(ea.shape)}"
+        )
+        assert ea.shape[0] == e_prime, (
+            f"file {file_idx}: edge_attr has {ea.shape[0]} rows but edge_index "
+            f"has {e_prime} edges — one attribute row per edge is required."
+        )
+        assert ea.dtype == torch.float32, (
+            f"file {file_idx}: edge_attr.dtype should be float32, got {ea.dtype}"
+        )
+
+        # ── (b) valid one-hot: every row sums to exactly 1.0 ───────────────
+        row_sums = ea.sum(dim=1)
+        assert torch.allclose(row_sums, torch.ones(e_prime), atol=0.0), (
+            f"file {file_idx}: {(row_sums != 1.0).sum().item()} edge_attr rows "
+            "do not sum to exactly 1.0 — one-hot edge typing is invalid."
+        )
+        # entries must themselves be 0/1, not e.g. [0.5, 0.5, 0.0]
+        assert torch.all((ea == 0.0) | (ea == 1.0)), (
+            f"file {file_idx}: edge_attr contains non-binary entries — not one-hot."
+        )
+
+        # ── (c) edge count is bounded (no O(N²) clique) ────────────────────
+        npz = dataset._get_handle(file_idx)
+        e_orig = int(np.array(npz["edge_index"]).shape[0])        # raw (E, 2)
+        opcode = np.array(npz["node_opcode"], dtype=np.uint8)
+        n_mxu = int(np.isin(opcode, list(MXU_OPS)).sum())
+        n_mem = int(np.isin(opcode, list(MEM_OPS)).sum())
+
+        upper_bound = e_orig + 2 * MXU_WINDOW * n_mxu + 2 * MEM_WINDOW * n_mem
+        assert e_prime <= upper_bound, (
+            f"file {file_idx}: E'={e_prime} exceeds the contention bound "
+            f"{upper_bound} (E_orig={e_orig}, N_mxu={n_mxu}, N_mem={n_mem}). "
+            "Edge construction is not local — possible O(N²) explosion."
+        )
+        # structural edges must actually be additive, never dropping data-flow
+        assert e_prime >= e_orig, (
+            f"file {file_idx}: E'={e_prime} < E_orig={e_orig} — augmentation "
+            "dropped data-flow edges."
         )

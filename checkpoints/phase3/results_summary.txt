@@ -1,0 +1,33 @@
+Phase 3 results — Tue Jun 23 12:00:33 AM EDT 2026
+Model: HardwareAwareDiffPool (~234k params)
+Seeds: 42 100 123 456 789
+Epochs: 50  configs/batch: 8  cap: 128  workers: 4
+Compared against Phase 2c wide-baseline mean τ = 0.2914
+
+run                       seed  best_val_tau
+---                       ----  ------------
+hardware-seed42             42  0.3037
+hardware-seed100           100  0.3289
+hardware-seed123           123  0.2581
+hardware-seed456           456  0.2814
+hardware-seed789           789  0.2267
+
+────────────────────────────────────────────────────────
+  Phase 3 summary — hardware-aware DiffPool
+────────────────────────────────────────────────────────
+  hardware (Phase 3)   n=5  τ = 0.2798 ± 0.0396
+               individual: ['0.3037', '0.3289', '0.2581', '0.2814', '0.2267']
+
+  wide-baseline mean (Phase 2c) = 0.2914
+  Δτ (hardware − wide-baseline mean) = -0.0116
+
+  Paired vs Phase 2c wide-baseline (same seeds, n=5):
+    seed  42:  hw 0.3037  vs  flat 0.3193   Δ -0.0157  (flat wins)
+    seed 100:  hw 0.3289  vs  flat 0.2442   Δ +0.0847  (hardware wins)
+    seed 123:  hw 0.2581  vs  flat 0.3077   Δ -0.0496  (flat wins)
+    seed 456:  hw 0.2814  vs  flat 0.2661   Δ +0.0153  (hardware wins)
+    seed 789:  hw 0.2267  vs  flat 0.3196   Δ -0.0929  (flat wins)
+    mean paired Δτ = -0.0116 ± 0.0672
+    paired t-test: t=-0.387 p=0.719   |   Wilcoxon: W=5.0 p=0.625
+    ↳ Hardware edges do NOT help
+────────────────────────────────────────────────────────

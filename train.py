@@ -1,7 +1,7 @@
 """
 train.py
 --------
-Phase 1 Training Loop — GraphSAGE Baseline with ListMLE and Kendall's Tau.
+Phase 1/2 Training Loop — GraphSAGE / HierarchicalGraphSAGE with ListMLE and Kendall's Tau.
 
 Critical design decisions
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -22,16 +22,28 @@ Critical design decisions
     the correct ordering.  Clipping prevents the NaN cascade that follows an
     exploding gradient step.
 
+(4) DiffPool auxiliary losses (Phase 2)
+    HierarchicalGraphSAGE returns (scores, aux_losses) where aux_losses contains
+    lp_loss (link prediction) and entropy_loss (assignment entropy regularization).
+    Both are added to ListMLE with configurable weights --lp-weight / --entropy-weight.
+    All three components are logged to WandB individually under train/ so that
+    cluster collapse (lp_loss → 0, entropy_loss → log(K)) can be spotted early.
+    BaselineGraphSAGE (--model baseline) returns only scores; aux losses are
+    treated as zero automatically.
+
 Usage
 ~~~~~
-    # Minimal run (no wandb)
-    python train.py --no-wandb
+    # Phase 1 baseline
+    python train.py --model baseline --no-wandb
 
-    # Full run with wandb (install first: pip install wandb)
+    # Phase 2 hierarchical (default)
     python train.py --epochs 50 --configs-per-batch 32
 
     # Memory-limited: reduce configs per batch for BERT-scale graphs
     python train.py --configs-per-batch 8 --max-configs-per-graph 512 --no-wandb
+
+    # Tune auxiliary loss weights if cluster assignments collapse
+    python train.py --lp-weight 0.5 --entropy-weight 0.05
 
     # Resume from checkpoint
     python train.py --resume checkpoints/best_model.pt --no-wandb
@@ -62,7 +74,22 @@ except ImportError:
 
 from dataset import TPUGraphDataset
 from loss import listmle_loss
-from model import BaselineGraphSAGE
+
+
+def _forward(model: "nn.Module", batch):
+    """Call the model, passing edge_attr only to the edge-aware Phase 3 model.
+
+    Baseline / wide-baseline / hierarchical take 4 positional args; the Phase 3
+    HardwareAwareDiffPool additionally consumes batch.edge_attr (the (E,3) edge
+    types from dataset.add_structural_edges).
+    """
+    if isinstance(model, HardwareAwareDiffPool):
+        return model(batch.x, batch.edge_index, batch.batch,
+                     batch.config_mask, batch.edge_attr)
+    return model(batch.x, batch.edge_index, batch.batch, batch.config_mask)
+from model import BaselineGraphSAGE, BaselineGraphSAGE_Large
+from model_phase2 import HierarchicalGraphSAGE
+from model_phase3 import HardwareAwareDiffPool
 
 
 _DATA_ROOT = os.path.join(
@@ -273,7 +300,7 @@ def evaluate(
         # ── True runtimes: read directly from mmap (no full Early-Join) ────
         # _index[i] = (file_idx, cfg_idx); we need cfg_idx per flat index.
         cfg_indices   = [val_dataset._index[i][1] for i in flat_indices]
-        npz           = val_dataset._npz_handles[file_idx]
+        npz           = val_dataset._get_handle(file_idx)
         true_runtimes = np.array(npz["config_runtime"], dtype=np.float64)[cfg_indices]
 
         # ── Predicted scores: mini-batched forward passes ──────────────────
@@ -284,7 +311,8 @@ def evaluate(
             data_list = [val_dataset[i] for i in chunk]
             batch     = Batch.from_data_list(data_list).to(device)
 
-            preds = model(batch.x, batch.edge_index, batch.batch)  # (len(chunk),)
+            result = _forward(model, batch)
+            preds  = result[0] if isinstance(result, tuple) else result  # (len(chunk),)
             all_preds.append(preds.cpu())
 
         preds_np = torch.cat(all_preds).numpy()  # (n_configs,)
@@ -309,6 +337,8 @@ def train_epoch(
     optimizer: torch.optim.Optimizer,
     device: torch.device,
     grad_clip: float,
+    lp_weight: float = 0.0,
+    entropy_weight: float = 0.0,
 ) -> Dict[str, float]:
     """
     Run one full training epoch.
@@ -317,24 +347,47 @@ def train_epoch(
     contain K configurations of the same computation graph.  The model
     produces K scores; listmle_loss computes the ranking loss.
 
+    For HierarchicalGraphSAGE the model also returns auxiliary DiffPool losses
+    (lp_loss, entropy_loss) which are added to the ranking loss weighted by
+    lp_weight and entropy_weight.  BaselineGraphSAGE returns only scores;
+    auxiliary losses are treated as zero.
+
     Returns
     -------
     dict with keys:
-        "train_loss"      : mean per-batch loss for this epoch
-        "skipped_batches" : number of non-finite batches that were skipped
+        "train_loss"         : mean total loss (listmle + weighted auxiliaries)
+        "train_listmle_loss" : mean ListMLE component only
+        "train_lp_loss"      : mean link-prediction auxiliary loss
+        "train_entropy_loss" : mean entropy-regularization auxiliary loss
+        "skipped_batches"    : number of non-finite batches that were skipped
     """
     model.train()
-    total_loss    = 0.0
-    total_batches = 0
-    skipped       = 0
+    total_loss         = 0.0
+    total_listmle_loss = 0.0
+    total_lp_loss      = 0.0
+    total_entropy_loss = 0.0
+    total_batches      = 0
+    skipped            = 0
+
+    _zero = torch.tensor(0.0, device=device)
 
     for batch in loader:
         batch = batch.to(device)
 
         optimizer.zero_grad()
 
-        scores = model(batch.x, batch.edge_index, batch.batch)  # (K,)
-        loss   = listmle_loss(scores, batch.y)
+        # Unpack: HierarchicalGraphSAGE / HardwareAwareDiffPool return
+        # (scores, aux_losses); BaselineGraphSAGE returns scores only.
+        result = _forward(model, batch)
+        if isinstance(result, tuple):
+            scores, aux_losses = result
+        else:
+            scores, aux_losses = result, {"lp_loss": _zero, "entropy_loss": _zero}
+
+        ranking_loss = listmle_loss(scores, batch.y)
+        lp_loss      = aux_losses["lp_loss"]
+        entropy_loss = aux_losses["entropy_loss"]
+        loss         = ranking_loss + lp_weight * lp_loss + entropy_weight * entropy_loss
 
         # Guard: a non-finite loss indicates a degenerate batch or
         # scores that have already diverged.  Skip rather than propagate NaN.
@@ -350,11 +403,20 @@ def train_epoch(
 
         optimizer.step()
 
-        total_loss    += loss.item()
-        total_batches += 1
+        total_loss         += loss.item()
+        total_listmle_loss += ranking_loss.item()
+        total_lp_loss      += lp_loss.item()
+        total_entropy_loss += entropy_loss.item()
+        total_batches      += 1
 
-    mean_loss = total_loss / max(total_batches, 1)
-    return {"train_loss": mean_loss, "skipped_batches": skipped}
+    n = max(total_batches, 1)
+    return {
+        "train_loss":         total_loss         / n,
+        "train_listmle_loss": total_listmle_loss / n,
+        "train_lp_loss":      total_lp_loss      / n,
+        "train_entropy_loss": total_entropy_loss / n,
+        "skipped_batches":    skipped,
+    }
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -379,24 +441,49 @@ def parse_args() -> argparse.Namespace:
                         "Useful to balance epoch time when one graph dominates.")
     g.add_argument("--eval-batch", type=int, default=32,
                    help="Mini-batch size for validation forward passes.")
+    g.add_argument("--num-workers", type=int, default=0,
+                   help="DataLoader worker processes for parallel data loading. "
+                        "0 = single-threaded (safe everywhere). "
+                        "4–8 recommended on Linux to reduce GPU idle time.")
 
     # ── Model ─────────────────────────────────────────────────────────────────
     g = p.add_argument_group("Model")
+    g.add_argument("--model",    default="hierarchical",
+                   choices=["baseline", "wide-baseline", "hierarchical", "hardware"],
+                   help="baseline = Phase 1 GraphSAGE (h=128); "
+                        "wide-baseline = parameter-matched flat model (h=172, ~236k params); "
+                        "hierarchical = Phase 2 DiffPool (~236k params); "
+                        "hardware = Phase 3 edge-aware DiffPool consuming edge_attr (~234k params).")
     g.add_argument("--hidden",   type=int,   default=128,
                    help="GNN and first MLP hidden dimension.")
-    g.add_argument("--dropout",  type=float, default=0.1)
+    g.add_argument("--dropout",  type=float, default=0.0,
+                   help="Dropout probability. Keep at 0: dropout in residual "
+                        "branches causes train/eval discrepancy (scores collapse "
+                        "in eval mode). Regularization comes from weight_decay "
+                        "and per-epoch config subsampling.")
 
     # ── Training ──────────────────────────────────────────────────────────────
     g = p.add_argument_group("Training")
     g.add_argument("--epochs",       type=int,   default=50)
     g.add_argument("--lr",           type=float, default=1e-3)
     g.add_argument("--weight-decay", type=float, default=1e-4)
-    g.add_argument("--grad-clip",    type=float, default=1.0)
-    g.add_argument("--eval-every",   type=int,   default=5,
+    g.add_argument("--grad-clip",    type=float, default=0.1,
+                   help="Max global L2 norm for gradient clipping. "
+                        "Reference uses per-tensor clipnorm=0.01; 0.1 is a "
+                        "conservative global equivalent.")
+    g.add_argument("--eval-every",     type=int,   default=5,
                    help="Run validation every N epochs.")
-    g.add_argument("--seed",         type=int,   default=42)
-    g.add_argument("--resume",       type=str,   default=None,
+    g.add_argument("--seed",           type=int,   default=42)
+    g.add_argument("--resume",         type=str,   default=None,
                    help="Path to a checkpoint file to resume training from.")
+    g.add_argument("--lp-weight",      type=float, default=0.1,
+                   help="Weight for DiffPool link-prediction auxiliary loss. "
+                        "Increase if cluster assignments collapse (lp_loss → 0). "
+                        "Has no effect with --model baseline.")
+    g.add_argument("--entropy-weight", type=float, default=0.01,
+                   help="Weight for DiffPool entropy regularization loss. "
+                        "Increase if S stays soft/uniform instead of one-hot. "
+                        "Has no effect with --model baseline.")
 
     # ── Checkpointing ─────────────────────────────────────────────────────────
     g = p.add_argument_group("Checkpointing")
@@ -423,8 +510,12 @@ def main() -> None:
     args = parse_args()
 
     # ── Reproducibility ───────────────────────────────────────────────────────
-    torch.manual_seed(args.seed)
+    import random as _random
+    _random.seed(args.seed)
     np.random.seed(args.seed)
+    torch.manual_seed(args.seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(args.seed)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Device  : {device}")
@@ -455,24 +546,44 @@ def main() -> None:
         f"{args.configs_per_batch} configs/batch"
     )
 
-    # batch_sampler= replaces batch_size/shuffle/drop_last in DataLoader.
-    # num_workers=0: required on macOS (see module docstring, Point 2).
     loader = DataLoader(
         train_ds,
         batch_sampler=sampler,
-        num_workers=0,
+        num_workers=args.num_workers,
         pin_memory=(device.type == "cuda"),
+        persistent_workers=(args.num_workers > 0),
     )
 
     # ── Model ─────────────────────────────────────────────────────────────────
-    model = BaselineGraphSAGE(
-        in_channels=158,
-        hidden_channels=args.hidden,
-        dropout=args.dropout,
-    ).to(device)
+    if args.model == "hierarchical":
+        model = HierarchicalGraphSAGE(
+            in_channels=158,
+            hidden_channels=args.hidden,
+            dropout=args.dropout,
+        ).to(device)
+    elif args.model == "hardware":
+        # Phase 3 — edge-aware DiffPool; consumes the (E,3) structural edge types.
+        model = HardwareAwareDiffPool(
+            in_channels=158,
+            hidden_channels=args.hidden,
+            dropout=args.dropout,
+        ).to(device)
+    elif args.model == "wide-baseline":
+        # Parameter-matched flat model: hidden=172 → 236,157 params ≈ DiffPool 235,553.
+        # Ignores --hidden to guarantee the parameter match is exact.
+        model = BaselineGraphSAGE_Large(
+            in_channels=158,
+            dropout=args.dropout,
+        ).to(device)
+    else:
+        model = BaselineGraphSAGE(
+            in_channels=158,
+            hidden_channels=args.hidden,
+            dropout=args.dropout,
+        ).to(device)
 
     n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    print(f"Model   : {n_params:,} trainable parameters")
+    print(f"Model   : {args.model} — {n_params:,} trainable parameters")
 
     optimizer = torch.optim.Adam(
         model.parameters(),
@@ -494,11 +605,10 @@ def main() -> None:
             sys.exit(f"ERROR: checkpoint not found at {args.resume!r}")
         ckpt = torch.load(args.resume, map_location=device)
         model.load_state_dict(ckpt["model_state"])
-        optimizer.load_state_dict(ckpt["opt_state"])
-        start_epoch = ckpt["epoch"] + 1
-        best_tau    = ckpt.get("val_tau", -float("inf"))
-        best_epoch  = ckpt["epoch"]
-        print(f"\nResumed from epoch {ckpt['epoch']} (best_tau={best_tau:+.4f})")
+        best_tau   = ckpt.get("val_tau", -float("inf"))
+        best_epoch = 0
+        print(f"\nResumed weights from epoch {ckpt['epoch']} (prev best_tau={best_tau:+.4f})")
+        print(f"Fresh LR schedule: {args.lr:.0e} → {args.lr * 0.01:.0e} over {args.epochs} epochs")
 
     # ── WandB ─────────────────────────────────────────────────────────────────
     use_wandb = _WANDB_AVAILABLE and not args.no_wandb
@@ -526,7 +636,11 @@ def main() -> None:
         sampler.set_epoch(epoch)
         t0 = time.perf_counter()
 
-        train_stats = train_epoch(model, loader, optimizer, device, args.grad_clip)
+        train_stats = train_epoch(
+            model, loader, optimizer, device, args.grad_clip,
+            lp_weight=args.lp_weight,
+            entropy_weight=args.entropy_weight,
+        )
         scheduler.step()
 
         elapsed = time.perf_counter() - t0
@@ -538,11 +652,14 @@ def main() -> None:
             )
 
         log: Dict[str, float] = {
-            "epoch":         float(epoch),
-            "train_loss":    train_stats["train_loss"],
-            "lr":            scheduler.get_last_lr()[0],
-            "epoch_time_s":  elapsed,
-            "skipped":       float(train_stats["skipped_batches"]),
+            "epoch":                float(epoch),
+            "train/total_loss":     train_stats["train_loss"],
+            "train/listmle_loss":   train_stats["train_listmle_loss"],
+            "train/lp_loss":        train_stats["train_lp_loss"],
+            "train/entropy_loss":   train_stats["train_entropy_loss"],
+            "lr":                   scheduler.get_last_lr()[0],
+            "epoch_time_s":         elapsed,
+            "skipped":              float(train_stats["skipped_batches"]),
         }
 
         # ── Validation ────────────────────────────────────────────────────────
@@ -576,9 +693,13 @@ def main() -> None:
         print(
             f"Epoch {epoch:>3}/{args.epochs}"
             f"  loss={train_stats['train_loss']:.5f}"
+            f"  (lm={train_stats['train_listmle_loss']:.4f}"
+            f"  lp={train_stats['train_lp_loss']:.4f}"
+            f"  ent={train_stats['train_entropy_loss']:.4f})"
             f"  lr={scheduler.get_last_lr()[0]:.2e}"
             f"  ({elapsed:.1f}s)"
-            f"{val_str}"
+            f"{val_str}",
+            flush=True,
         )
 
         if use_wandb:

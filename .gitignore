@@ -17,5 +17,17 @@ __pycache__/
 # OS
 .DS_Store
 
-# Reference (previously excluded)
+# Reference — Google's tpu_graphs repo (third-party, own LICENSE). Clone separately;
+# see README "Setup". Needed only by scripts/extract_opcode_map.py.
 reference/
+
+# Papers — copyrighted PDFs (arXiv preprints, Jouppi TPU paper). Cited in README,
+# not redistributed. Keep out of history so the repo is clean when it goes public.
+papers/
+
+# WandB — raw run logs (large, mostly internal state). Training curves are already
+# committed as experiments/figures/*.png. Regenerate logs by re-running run_*.sh.
+wandb/
+
+# Stray notebook/editor artifacts
+*.ipynb

@@ -48,10 +48,13 @@ import numpy as np
 import scipy.stats as stats
 
 # ---------------------------------------------------------------------------
-# XLA HloOpcode categorisation
+# XLA HloOpcode categorisation — CORRECTED for TPUGraphs custom enum
 # ---------------------------------------------------------------------------
-# Source: XLA HLO op enum (alphabetical, 0-indexed).
-# Ref: tensorflow/compiler/xla/hlo/ir/hlo_opcode.h
+# ⚠️  IMPORTANT: TPUGraphs assigns its own integer ids to opcodes, defined in
+#   reference/tpu_graphs/process_data/xla/hlo_opcode.h  via V("name", id) macros.
+#   These IDs are NOT the standard alphabetical XLA enum used in TensorFlow's
+#   hlo_opcode.h.  The sets below were derived from the reference header using
+#   scripts/extract_opcode_map.py.  Key landmarks: convolution=26, dot=34.
 #
 # Memory-bound: data movement, layout change, communication, I/O.
 # Compute-bound: arithmetic, activation, reduction, math functions.
@@ -59,88 +62,95 @@ import scipy.stats as stats
 # ---------------------------------------------------------------------------
 
 MEMORY_BOUND_OPCODES: Set[int] = {
-    4, 5, 6,          # AllGather, AllGatherDone, AllGatherStart
-    7, 8, 9,          # AllReduce, AllReduceDone, AllReduceStart
-    10,               # AllToAll
-    16, 17,           # Bitcast, BitcastConvert
-    18,               # Broadcast
-    22, 23, 24,       # CollectivePermute, CollectivePermuteDone, CollectivePermuteStart
-    27,               # Concatenate
-    28,               # Constant
-    29,               # Convert (type cast – data movement dominated)
-    31, 32, 33,       # Copy, CopyDone, CopyStart
-    40, 41,           # DynamicSlice, DynamicUpdateSlice
-    47,               # Gather
-    48,               # GetDimensionSize
-    49,               # GetTupleElement
-    51,               # Infeed
-    52,               # Iota
-    68,               # Outfeed
-    69,               # Pad
-    70,               # Parameter
-    75, 76,           # Recv, RecvDone
-    79,               # ReduceScatter (communication)
-    83,               # Reshape
-    84,               # Reverse
-    91,               # Scatter
-    94, 95,           # Send, SendDone
-    96,               # SetDimensionSize
-    102,              # Slice
-    107,              # Transpose
-    108,              # Tuple
+    5,                # all-reduce
+    6,                # all-to-all
+    11, 12,           # bitcast, bitcast-convert
+    13,               # broadcast
+    18,               # collective-permute
+    22,               # concatenate
+    24,               # constant
+    25,               # convert (type cast – data movement dominated)
+    27, 28, 29,       # copy, copy-done, copy-start
+    35, 36,           # dynamic-slice, dynamic-update-slice
+    42,               # gather
+    43, 44,           # get-dimension-size, set-dimension-size
+    45,               # get-tuple-element
+    47,               # infeed
+    48,               # iota
+    61,               # outfeed
+    62,               # pad
+    63,               # parameter
+    68, 69,           # recv, recv-done
+    75,               # reshape
+    76,               # reverse
+    82,               # scatter
+    85, 86,           # send, send-done
+    92,               # slice
+    98,               # transpose
+    100,              # tuple
+    104,              # all-gather
+    105, 106,         # collective-permute-start, collective-permute-done
+    108,              # dynamic-reshape
+    109, 110,         # all-reduce-start, all-reduce-done
+    111,              # reduce-scatter (communication)
+    112, 113,         # all-gather-start, all-gather-done
 }
 
 COMPUTE_BOUND_OPCODES: Set[int] = {
-    0,                # Abs
-    1,                # Add
-    13, 14, 15,       # BatchNormGrad, BatchNormInference, BatchNormTraining
-    20,               # Cholesky
-    21,               # Clamp
-    25,               # Compare
-    26,               # Complex
-    30,               # Convolution
-    34,               # CountLeadingZeros
-    37,               # Divide
-    39,               # Dot
-    42, 43,           # Exponential, ExponentialMinusOne
-    44,               # Fft
-    45,               # Floor
-    46,               # Fusion
-    50,               # Imag
-    54, 55,           # Log, LogPlusOne
-    56, 57, 58,       # LogicalAnd, LogicalNot, LogicalOr
-    59,               # Logistic (sigmoid)
-    60,               # Map
-    61, 62,           # Maximum, Minimum
-    63,               # Multiply
-    64,               # Negate
-    65, 67,           # Not, Or
-    72,               # PopulationCount
-    73,               # Power
-    74,               # Real
-    77,               # Reduce
-    78,               # ReducePrecision
-    80,               # ReduceWindow
-    81,               # Remainder
-    85, 86, 87,       # Rng, RngBitGenerator, RngGetAndUpdateState
-    88, 89,           # RoundNearestAfz, RoundNearestEven
-    90,               # Rsqrt
-    92, 93,           # Select, SelectAndScatter
-    97, 98, 99,       # ShiftLeft, ShiftRightArithmetic, ShiftRightLogical
-    100,              # Sign
-    101,              # Sin
-    103,              # Sort
-    104,              # Sqrt
-    105,              # Subtract
-    106,              # Tanh
-    109,              # TupleReduce
-    110,              # While
-    111,              # Xor
+    1,                # abs
+    2,                # add
+    7,                # atan2
+    8, 9, 10,         # batch-norm-grad, batch-norm-inference, batch-norm-training
+    15,               # ceil
+    16,               # cholesky
+    17,               # clamp
+    19,               # count-leading-zeros
+    20,               # compare
+    21,               # complex
+    26,               # convolution   ← MXU (was wrong as 30 in the old enum)
+    30,               # cosine
+    32,               # divide
+    34,               # dot           ← MXU (was wrong as 39 in the old enum)
+    37, 38,           # exponential, exponential-minus-one
+    39,               # fft
+    40,               # floor
+    41,               # fusion
+    46,               # imag
+    49,               # is-finite
+    50, 51,           # log, log-plus-one
+    52, 53, 54, 55,   # and, not, or, xor
+    56,               # map
+    57, 58,           # maximum, minimum
+    59,               # multiply
+    60,               # negate
+    65,               # popcnt
+    66,               # power
+    67,               # real
+    70, 71, 72,       # reduce, reduce-precision, reduce-window
+    73,               # remainder
+    77, 78, 79,       # rng, rng-get-and-update-state, rng-bit-generator
+    80,               # round-nearest-afz
+    81,               # rsqrt
+    83, 84,           # select, select-and-scatter
+    87, 88, 89,       # shift-left, shift-right-arithmetic, shift-right-logical
+    90,               # sign
+    91,               # sine
+    93,               # sort
+    94,               # sqrt
+    95,               # subtract
+    96,               # tanh
+    99,               # triangular-solve
+    103,              # cbrt
+    107,              # logistic (sigmoid)
+    118,              # round-nearest-even
+    119,              # stochastic-convert
+    120,              # tan
 }
 
-# Opcodes outside both sets (2=AddDependency, 3=AfterAll, 11/12=Async*, 19=Call,
-# 35=CrossReplicaSum, 36=CustomCall, 38=Domain, 53=IsFinite,
-# 66=OptimizationBarrier, 71=PartitionId, 82=ReplicaId) fall in "other".
+# Opcodes outside both sets fall in "other" (infrastructure / control flow):
+#   3=add-dependency, 4=after-all, 14=call, 23=conditional, 31=custom-call,
+#   33=domain, 64=partition-id, 74=replica-id, 97=trace, 101=tuple-select,
+#   102=while, 114=opt-barrier, 115-117=async-start/update/done
 
 
 def classify_opcode(op: int) -> str:
