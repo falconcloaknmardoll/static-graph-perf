@@ -94,7 +94,7 @@ memory-contention edge→ [0, 0, 1]
 
 | Reason | Explanation |
 |---|---|
-| **Protects DiffPool** | Our Phase 2b pooling relies on a *single* `edge_index` and a uniform-node-count trick (`x.view(B, N, K)`, plus a `scatter`-based sparse `A@S`). HeteroData gives three edge lists and forces a heterogeneous conv that **materializes messages per relation → 3× the activation memory**. On BERT-scale graphs we are already near the 16 GB limit on the RTX 5080. Option A would mean rewriting (and re-validating) the architecture that just beat the paper baseline. |
+| **Protects DiffPool** | Our Phase 2b pooling relies on a *single* `edge_index` and a uniform-node-count trick (`x.view(B, N, K)`, plus a `scatter`-based sparse `A@S`). HeteroData gives three edge lists and forces a heterogeneous conv that **materializes messages per relation → 3× the activation memory**. On BERT-scale graphs we are already near the 16 GB limit on the RTX 5080. Option A would mean rewriting (and re-validating) the DiffPool pipeline we'd already built and tested. |
 | **Protects the pipeline** | The `SingleGraphBatchSampler`, the 158-dim Early-Join `x`, and `config_mask` all assume a homogeneous `Data` object. HeteroData ripples changes through the whole stack. |
 | **Memory is trivial** | `edge_attr` is `(E', 3)` floats — a rounding error. Option A stores 3 edge structures *and* does 3 message passes. |
 | **Model-agnostic** | Even a model that ignores `edge_attr` still benefits, because the extra edges shorten paths (more diameter reduction — the same lever that won Phase 2b). |

@@ -23,7 +23,7 @@
 | # | Model | Init | τ | Note |
 |---|-------|------|---|------|
 | 1 | GraphSAGE (baseline) | cold | 0.2921 | still climbing at ep50 |
-| 2 | GraphSAGE (baseline) | warm (from #1) | **0.3676** | best overall; beats paper 0.34 |
+| 2 | GraphSAGE (baseline) | warm (from #1) | **0.3676** | best single run — ⚠️ n=1, not multi-seed verified (C1/C4); do not cite as "beats 0.34" |
 | 3 | Hierarchical DiffPool | cold | **0.3560** | ⛔ gap vs #1 is a param-count confound — see [Phase 2c](phase2c_ablation_results.md) |
 | 4 | Hierarchical DiffPool | warm (from #3) | 0.2933 | regressed — LR restart broke the pooling equilibrium |
 
@@ -237,7 +237,9 @@ for the warm run:
 | 45 | 2.23757 | +0.3676 | ← saved ✓ |
 | 50 | 2.23304 | +0.3460 | |
 
-**Best: τ = +0.3676 @ epoch 45** — exceeds 0.34 paper baseline ✓
+**Best: τ = +0.3676 @ epoch 45** — ⚠️ single run (n=1). The "exceeds 0.34" comparison is
+**not** verified: same-protocol/same-split confirmation and multi-seed error bars are still
+owed (C1/C4). Given the measured seed std ≈0.03, a single 0.3676 is not a citable result.
 
 **Observation:** Both runs show the same pattern — large τ gains only appear when LR drops below ~1e-4 (epochs 40–50). The high-LR phase (epochs 1–35) trains loss down but disrupts ranking calibration; the low-LR phase refines it.
 
@@ -358,7 +360,7 @@ flat baseline.
 
 | | Result |
 |---|---|
-| GraphSAGE 3-layer, hidden=128 | Works; 0.3676 τ |
+| GraphSAGE 3-layer, hidden=128 | Works; 0.3676 τ (single run — see C4 caveat above) |
 | Dual pooling (all + config nodes) | Necessary; single pool dilutes config signal |
 | log1p normalization | Necessary; without it loss diverges in epoch 2 |
 | dropout=0 | Required; any dropout in residuals kills eval performance |
