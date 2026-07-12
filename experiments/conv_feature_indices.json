@@ -1,0 +1,349 @@
+{
+  "task": "module_layout_cost",
+  "conv_groups": {
+    "kernel_spatial_size": [
+      {
+        "index": 37,
+        "name": "window_size_0"
+      },
+      {
+        "index": 38,
+        "name": "window_size_1"
+      },
+      {
+        "index": 39,
+        "name": "window_size_2"
+      },
+      {
+        "index": 40,
+        "name": "window_size_3"
+      },
+      {
+        "index": 41,
+        "name": "window_size_4"
+      },
+      {
+        "index": 42,
+        "name": "window_size_5"
+      },
+      {
+        "index": 43,
+        "name": "window_size_sum"
+      },
+      {
+        "index": 44,
+        "name": "window_size_product"
+      }
+    ],
+    "tensor_shape": [
+      {
+        "index": 21,
+        "name": "shape_dimensions_0"
+      },
+      {
+        "index": 22,
+        "name": "shape_dimensions_1"
+      },
+      {
+        "index": 23,
+        "name": "shape_dimensions_2"
+      },
+      {
+        "index": 24,
+        "name": "shape_dimensions_3"
+      },
+      {
+        "index": 25,
+        "name": "shape_dimensions_4"
+      },
+      {
+        "index": 26,
+        "name": "shape_dimensions_5"
+      },
+      {
+        "index": 27,
+        "name": "shape_dimensions_sum"
+      },
+      {
+        "index": 28,
+        "name": "shape_dimensions_product"
+      }
+    ],
+    "window_stride": [
+      {
+        "index": 45,
+        "name": "window_stride_0"
+      },
+      {
+        "index": 46,
+        "name": "window_stride_1"
+      },
+      {
+        "index": 47,
+        "name": "window_stride_2"
+      },
+      {
+        "index": 48,
+        "name": "window_stride_3"
+      },
+      {
+        "index": 49,
+        "name": "window_stride_4"
+      },
+      {
+        "index": 50,
+        "name": "window_stride_5"
+      },
+      {
+        "index": 51,
+        "name": "window_stride_sum"
+      },
+      {
+        "index": 52,
+        "name": "window_stride_product"
+      }
+    ],
+    "window_padding": [
+      {
+        "index": 53,
+        "name": "window_padding_low_0"
+      },
+      {
+        "index": 54,
+        "name": "window_padding_low_1"
+      },
+      {
+        "index": 55,
+        "name": "window_padding_low_2"
+      },
+      {
+        "index": 56,
+        "name": "window_padding_low_3"
+      },
+      {
+        "index": 57,
+        "name": "window_padding_low_4"
+      },
+      {
+        "index": 58,
+        "name": "window_padding_low_5"
+      },
+      {
+        "index": 59,
+        "name": "window_padding_low_sum"
+      },
+      {
+        "index": 60,
+        "name": "window_padding_low_product"
+      },
+      {
+        "index": 61,
+        "name": "window_padding_high_0"
+      },
+      {
+        "index": 62,
+        "name": "window_padding_high_1"
+      },
+      {
+        "index": 63,
+        "name": "window_padding_high_2"
+      },
+      {
+        "index": 64,
+        "name": "window_padding_high_3"
+      },
+      {
+        "index": 65,
+        "name": "window_padding_high_4"
+      },
+      {
+        "index": 66,
+        "name": "window_padding_high_5"
+      },
+      {
+        "index": 67,
+        "name": "window_padding_high_sum"
+      },
+      {
+        "index": 68,
+        "name": "window_padding_high_product"
+      }
+    ],
+    "window_dilation": [
+      {
+        "index": 69,
+        "name": "window_window_dilation_0"
+      },
+      {
+        "index": 70,
+        "name": "window_window_dilation_1"
+      },
+      {
+        "index": 71,
+        "name": "window_window_dilation_2"
+      },
+      {
+        "index": 72,
+        "name": "window_window_dilation_3"
+      },
+      {
+        "index": 73,
+        "name": "window_window_dilation_4"
+      },
+      {
+        "index": 74,
+        "name": "window_window_dilation_5"
+      },
+      {
+        "index": 75,
+        "name": "window_window_dilation_sum"
+      },
+      {
+        "index": 76,
+        "name": "window_window_dilation_product"
+      },
+      {
+        "index": 77,
+        "name": "window_base_dilation_0"
+      },
+      {
+        "index": 78,
+        "name": "window_base_dilation_1"
+      },
+      {
+        "index": 79,
+        "name": "window_base_dilation_2"
+      },
+      {
+        "index": 80,
+        "name": "window_base_dilation_3"
+      },
+      {
+        "index": 81,
+        "name": "window_base_dilation_4"
+      },
+      {
+        "index": 82,
+        "name": "window_base_dilation_5"
+      },
+      {
+        "index": 83,
+        "name": "window_base_dilation_sum"
+      },
+      {
+        "index": 84,
+        "name": "window_base_dilation_product"
+      }
+    ],
+    "conv_axis_numbers": [
+      {
+        "index": 93,
+        "name": "convolution_dim_numbers_input_batch_dim"
+      },
+      {
+        "index": 94,
+        "name": "convolution_dim_numbers_input_feature_dim"
+      },
+      {
+        "index": 95,
+        "name": "convolution_dim_numbers_input_spatial_dims_0"
+      },
+      {
+        "index": 96,
+        "name": "convolution_dim_numbers_input_spatial_dims_1"
+      },
+      {
+        "index": 97,
+        "name": "convolution_dim_numbers_input_spatial_dims_2"
+      },
+      {
+        "index": 98,
+        "name": "convolution_dim_numbers_input_spatial_dims_3"
+      },
+      {
+        "index": 99,
+        "name": "convolution_dim_numbers_kernel_input_feature_dim"
+      },
+      {
+        "index": 100,
+        "name": "convolution_dim_numbers_kernel_output_feature_dim"
+      },
+      {
+        "index": 101,
+        "name": "convolution_dim_numbers_kernel_spatial_dims_0"
+      },
+      {
+        "index": 102,
+        "name": "convolution_dim_numbers_kernel_spatial_dims_1"
+      },
+      {
+        "index": 103,
+        "name": "convolution_dim_numbers_kernel_spatial_dims_2"
+      },
+      {
+        "index": 104,
+        "name": "convolution_dim_numbers_kernel_spatial_dims_3"
+      },
+      {
+        "index": 105,
+        "name": "convolution_dim_numbers_output_batch_dim"
+      },
+      {
+        "index": 106,
+        "name": "convolution_dim_numbers_output_feature_dim"
+      }
+    ],
+    "groups": [
+      {
+        "index": 107,
+        "name": "feature_group_count"
+      },
+      {
+        "index": 108,
+        "name": "batch_group_count"
+      }
+    ]
+  },
+  "mxu_alignment_inputs": {
+    "kernel_h": {
+      "index": 37,
+      "name": "window_size_0"
+    },
+    "kernel_w": {
+      "index": 38,
+      "name": "window_size_1"
+    },
+    "out_dim_0": {
+      "index": 21,
+      "name": "shape_dimensions_0"
+    },
+    "out_dim_1": {
+      "index": 22,
+      "name": "shape_dimensions_1"
+    },
+    "out_dim_2": {
+      "index": 23,
+      "name": "shape_dimensions_2"
+    },
+    "out_dim_3": {
+      "index": 24,
+      "name": "shape_dimensions_3"
+    },
+    "stride_h": {
+      "index": 45,
+      "name": "window_stride_0"
+    },
+    "stride_w": {
+      "index": 46,
+      "name": "window_stride_1"
+    },
+    "out_feature_axis": {
+      "index": 106,
+      "name": "convolution_dim_numbers_output_feature_dim"
+    },
+    "feature_group_count": {
+      "index": 107,
+      "name": "feature_group_count"
+    }
+  }
+}
