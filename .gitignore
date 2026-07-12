@@ -31,3 +31,16 @@ wandb/
 
 # Stray notebook/editor artifacts
 *.ipynb
+
+# Personal planning / strategy docs — private, never committed
+PROJECT_TIMELINE.md
+*.private.md
+# Meeting-prep decks — contain private planning notes; keep private so the
+# repo is clean when it goes public.
+meeting_prep_*.md
+
+# Training artifacts — large binaries / regenerable logs (regenerate via run_*.sh).
+# Checkpoints are model weights (100s of MB); logs are per-run text.
+checkpoints/
+logs/
+checkpoints_*.log
