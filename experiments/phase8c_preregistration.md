@@ -113,3 +113,30 @@ Wide flat baseline (`--model wide-baseline`, ~236k params), `--configs-per-batch
 7. **Implementation:** new files `dataset_mxu.py` / `train_8c.py` / `run_phase8c.sh`
    (dataset.py & train.py untouched); features get sign·log1p per §5; smoke-tested on all
    4 arms (dims 158/162/161/174, conv-only nonzero, finite, forward OK).
+
+### Amendment A2 — 2026-07-20 (specificity control, registered BEFORE the run)
+**Reason.** 8c landed as a POSITIVE result that *reverses* P1 (channel, predicted null, was
+strongest: CONV Top-1 slowdown 1.425→1.120, BH-p.003). Because MXU features are provably
+**config-invariant** (`dataset_mxu.py` computes one block per graph, appended to every config),
+the effect can only run through changed training dynamics — which raises the Phase-2b question:
+is it *MXU information*, or just *any extra conv-node columns / capacity*? This control decides it.
+
+1. **New arm `scramble` (k=4, dim 162 — mirrors the strongest arm, `channel`).** Same four channel
+   columns and same sign·log1p normalization, but within each graph the block's feature ROWS are
+   permuted **among the MXU-resolved (any-nonzero) nodes only**, via a deterministic per-graph RNG
+   (`np.random.default_rng(file_idx)`). This preserves — exactly — the value multiset, the
+   conv-node placement (zeros stay on non-conv nodes), the dimensionality, and config-invariance;
+   it destroys ONLY the node↔value alignment (the actual MXU information). Verified on
+   `inception_v3` (293 nonzero rows: identical placement + value multiset to channel, rows
+   reassigned, deterministic across reload).
+2. **Registered prediction P4 (committed now, before the run):** if the 8c effect is real MXU
+   co-design, **channel will significantly beat scramble** on CONV Top-1 slowdown (channel < scramble).
+   If **channel ≈ scramble** (no significant gap), the 8c effect is a capacity/regularization
+   artifact of adding 4 conv-localized columns, NOT MXU information → 8c must be reframed.
+3. **Decision rule (fixed before data):** primary contrast = CONV-subset Top-1 slowdown, `scramble`
+   vs `channel`, paired by seed (same t + Wilcoxon + bootstrap CI + BH as §7); placebo on OTHER.
+   Also report scramble vs baseline (does the mere presence of the columns move anything?).
+4. **Protocol:** identical to §6 / A1 — 5 seeds {42,100,123,456,789}, `layout:xla:random` train,
+   eval on the frozen §4 split in both xla valid sets, same capped harness (num-workers 0).
+   `channel`/`baseline` checkpoints are reused (unchanged); only `scramble` is newly trained
+   (5 runs). ⛔ GPU-gated (see [[project-gpu-blocker]]).

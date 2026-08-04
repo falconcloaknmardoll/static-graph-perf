@@ -159,6 +159,9 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--arms", nargs="+", default=ARMS)
     ap.add_argument("--batch-size", type=int, default=32)
+    ap.add_argument("--out", default="experiments/phase8c_results.md",
+                    help="output md path; use a separate file for control runs "
+                         "so the frozen primary result is not overwritten")
     args = ap.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -224,10 +227,23 @@ def main() -> None:
         P("\n  Registered predictions: P1 channel→null, P2 spatial→best-but-uncertain,")
         P("  P3 persisting gap = reportable finding. (Committed 2026-06-29, before data.)")
 
-    Path("experiments/phase8c_results.md").write_text("\n".join(lines) + "\n")
-    Path("experiments/phase8c_results.json").write_text(
-        json.dumps(results, indent=2, default=float))
-    P("\nWrote experiments/phase8c_results.{md,json}")
+    # ── P4 specificity control (prereg A2): channel vs scramble, paired ──────
+    if "channel" in per_arm and "scramble" in per_arm:
+        P("\n## Specificity control (prereg A2): CONV subset, channel vs scramble, paired by seed")
+        P("  P4: channel significantly < scramble ⇒ real MXU info; channel ≈ scramble ⇒ capacity artifact.")
+        r = paired_stats(per_arm["channel"]["conv"], per_arm["scramble"]["conv"])
+        P(f"  channel−scramble  Δslowdown={r['delta']:+.4f}  CI95=[{r['ci'][0]:+.4f},"
+          f"{r['ci'][1]:+.4f}]  t-p={r['p_t']:.4f}  Wilcoxon-p={r['p_w']:.3f}  d={r['d']:+.2f}")
+        rp = paired_stats(per_arm["scramble"]["other"], per_arm["baseline"]["other"])
+        P(f"  placebo (scramble−baseline, OTHER)  Δ={rp['delta']:+.4f}  t-p={rp['p_t']:.4f}")
+        results["control_p4"] = {"channel_vs_scramble": r, "scramble_placebo": rp}
+
+    # JSON follows --out so a control run cannot clobber the frozen primary result.
+    out_md = Path(args.out)
+    out_json = out_md.with_suffix(".json")
+    out_md.write_text("\n".join(lines) + "\n")
+    out_json.write_text(json.dumps(results, indent=2, default=float))
+    P(f"\nWrote {out_md} and {out_json}")
 
 
 if __name__ == "__main__":

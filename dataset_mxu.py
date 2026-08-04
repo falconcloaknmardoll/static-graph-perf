@@ -39,7 +39,19 @@ ARM_COLUMNS = {
     "channel": ["c_out_mxu_util", "c_out_pad_waste", "k_mxu_util", "k_pad_waste"],
     "spatial": ["kernel_area", "gemm_m", "n_mxu_passes"],
     "full": list(FEATURE_NAMES),
+    # ── Specificity control (prereg amendment A2, registered 2026-07-20) ──
+    # Identical columns/dim to `channel` (k=4), but within each graph the
+    # feature ROWS are permuted AMONG the MXU-resolved (nonzero) nodes with a
+    # deterministic per-graph RNG (seed = file_idx). This preserves value
+    # distribution, conv-node placement, dimensionality, and config-invariance
+    # while DESTROYING the node↔value alignment (the actual MXU information).
+    # channel > scramble ⇒ real co-design signal; channel ≈ scramble ⇒ the 8c
+    # effect is capacity/regularization from extra conv-node columns, not info.
+    "scramble": ["c_out_mxu_util", "c_out_pad_waste", "k_mxu_util", "k_pad_waste"],
 }
+
+# Arms whose per-graph block is a row-scramble of their column values.
+_SCRAMBLE_ARMS = {"scramble"}
 
 
 class MXUGraphDataset(TPUGraphDataset):
@@ -50,6 +62,7 @@ class MXUGraphDataset(TPUGraphDataset):
             raise ValueError(f"unknown arm {mxu_arm!r}; choose from {list(ARM_COLUMNS)}")
         self.mxu_arm = mxu_arm
         self._arm_cols = [FEATURE_NAMES.index(c) for c in ARM_COLUMNS[mxu_arm]]
+        self._scramble = mxu_arm in _SCRAMBLE_ARMS
         super().__init__(data_dir=data_dir)
 
     # ── feature dimensionality ────────────────────────────────────────────
@@ -72,6 +85,16 @@ class MXUGraphDataset(TPUGraphDataset):
                 block = np.nan_to_num(block, nan=0.0)   # unresolved kernels → 0 (prereg A1)
             # sign·log1p — same normalization as the base features.
             block = np.sign(block) * np.log1p(np.abs(block))
+            if self._scramble:
+                # Permute feature rows AMONG the MXU-resolved (any-nonzero) nodes
+                # only, so conv-node placement + value distribution are preserved
+                # and only the node↔value alignment (the information) is destroyed.
+                # Deterministic per graph (seed=file_idx) → config-invariant and
+                # identical across training seeds, exactly like `channel`'s data.
+                nz = np.flatnonzero(np.any(block != 0.0, axis=1))
+                if nz.size > 1:
+                    perm = np.random.default_rng(file_idx).permutation(nz.size)
+                    block[nz] = block[nz][perm]
             cache["mxu_block"] = torch.from_numpy(block)                # (N, k)
         return cache
 
