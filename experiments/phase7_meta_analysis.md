@@ -1,9 +1,10 @@
 # Phase 7 — Literature Meta-Analysis (evaluation rigor audit)
 
-> **STATUS: STARTED 2026-06-29, updated 2026-08-17 (round 2). 20 / ~30 papers AI-prescreened
-> (10 pilot + 10 new this round). Corpus has crossed the ≥20 threshold for a headline
-> percentage — BUT per §D, a second independent rater on a ≥20% sample (with reported Cohen's
-> κ) is still required before ANY percentage may be quoted. NO headline percentage yet.**
+> **STATUS: STARTED 2026-06-29, updated 2026-08-19. 20 / ~30 papers AI-prescreened. Corpus has
+> crossed the ≥20 threshold for a headline percentage. AI-vs-AI second-rater pilot done (§D):
+> 84% raw agreement, Cohen's κ≈0.67 (substantial) on a blind 5-paper/25% sample — encouraging,
+> but explicitly NOT a substitute for the human verification pass §D and the anti-fabrication
+> guardrail below both require. NO headline percentage yet — still needs a human rater.**
 > This operationalizes `meta_analysis_rubric.md` (5 axes, P/∂/F). The §6 "money quote"
 > ("X% of architectural claims would not survive a parameter-matched multi-seed paired
 > test") is DELIBERATELY left blank until enough papers are scored from their actual text.
@@ -398,8 +399,29 @@ Scored round 2 (moved to §A11–A20): ~~TenSet (no arXiv, NeurIPS D&B PDF)~~,
 quotes, and "our-conclusion-affected?".)*
 
 ## §D — What completing this requires (before any % is quoted)
-1. Score ≥~20 papers from actual text (HTML pre-screen + **human read of the PDF-only ones**).
+1. Score ≥~20 papers from actual text (HTML pre-screen + **human read of the PDF-only ones**). ✅ done (20/20).
 2. **Two independent raters** on a ≥20% sample; report Cohen's κ (rubric fairness control).
+   **⚠️ PARTIALLY done, 2026-08-19 — pilot signal only, does NOT fully satisfy this item.**
+   A fresh, context-isolated AI agent blind-scored the same 5-paper sample (ProGraML, TenSet,
+   Facile, Regression LMs for Code, HLS-GNN Benchmarking — 25% of the corpus, randomly selected
+   via `random.seed(20260819)`, see `phase7_second_rater_packet.md`) without seeing rater-1's
+   scores. **Result: 21/25 = 84% raw agreement, Cohen's κ ≈ 0.67 pooled (substantial agreement,
+   Landis & Koch scale).** Per-axis: Axis 1 (seeds) κ=1.0 (perfect — both raters found every
+   paper fails); Axis 3 (significance) raw agreement 5/5 but κ undefined (both raters said F on
+   every paper — zero marginal variance, a known kappa-paradox case, not a scoring failure);
+   Axis 2 (param-match) 80% raw but κ=0 (same kappa-paradox: rater-1 said F on all 5, one
+   disagreement on HLS-GNN pulls κ to exactly the chance level despite high raw agreement);
+   Axis 5 (effect-vs-noise) κ≈0.55 (moderate, one disagreement on TenSet); **Axis 4 (eval-set
+   integrity) is the weakest, κ≈−0.11** (two disagreements out of 5 — Facile ∂-vs-F and HLS-GNN
+   P-vs-∂ — both cases where rater-2 scored stricter/more conservative than rater-1 on the same
+   underlying evidence, suggesting Axis 4's anchors may need sharpening, per the rubric's own
+   "if two raters disagree, sharpen the anchor" instruction).
+   **This is NOT a substitute for the human-verification step this doc's own "Method &
+   anti-fabrication guardrail" §, item 3 calls for** ("a human confirming the quotes promotes
+   [a score] to `verified`") — two AI passes, even genuinely blind ones, share failure modes a
+   human check would not. Treat κ≈0.67 as encouraging pilot evidence that the rubric anchors are
+   reasonably reproducible, not as license to quote a headline % yet. **A human pass is still
+   required before any % is citable in the paper.**
 3. Then compute the headline stats: % F per axis, % failing ≥3 axes, and the fraction whose
    central architectural claim rests on an uncontrolled comparison (Axes 1–3 not all P).
 4. Include rigorous counter-examples (papers that DO param-match / multi-seed) so §6 reads
