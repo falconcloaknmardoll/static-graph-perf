@@ -1,10 +1,12 @@
-# Phase 8d — Oracle / Upper-Bound Probe (design) — ⏳ STUB, FINALIZE WHEN 8C LANDS
+# Phase 8d — Oracle / Upper-Bound Probe (design) — ✅ PRE-REGISTERED 2026-08-19
 
-> ⛔ **DO NOT run or finalize this yet.** Its exact form depends on Phase 8c's ending
-> (results ~2026-07-13, `experiments/phase8c_results.md`). This stub exists so we DO NOT
-> FORGET to design it. See PROJECT_TIMELINE.md "STRATEGIC REFRAME — 2026-07-11" and memory
-> [[project-paper-spine]]. **Update trigger: the moment 8c's `.done` count = 20 and the
-> evaluator has run.**
+> **Finalized and frozen 2026-08-19** — see `experiments/phase8d_preregistration.md` for the
+> full pre-registration (hypotheses, arm design, decision rules, all fixed before running).
+> Candidate 1 (runtime-derived leakage/rank-bucket probe) was selected as cleanest per the
+> feasibility resolution below. **Status: designed, NOT yet run** — GPU still down; would run
+> on the same CPU workaround as 8c's scramble control if launched. **Now optional capstone,
+> not load-bearing** — 8c's confound-A specificity control already confirmed the L2 result on
+> its own, so this experiment calibrates the ceiling but doesn't gate any existing claim.
 
 ## Why this experiment exists (the one open reviewer hole)
 The paper's last soft spot: *"convolution is just HARD to rank, not un-representable from the
