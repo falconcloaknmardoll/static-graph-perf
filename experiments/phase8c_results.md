@@ -36,8 +36,11 @@ BH-p<0.05, placebo unchanged); full → gap closes but placebo moves slightly (�
 "investigate." **This REVERSES pre-registered P1** (channel predicted null; was the strongest,
 Δ=−0.304). Wilcoxon p=0.062 for all = the n=5 floor (as significant as 5 seeds allow), t/BH significant.
 
-**⚠️ DO NOT CLAIM A CO-DESIGN WIN until these are resolved (the project's verify-before-believe rule;
-this result is strong AND contradicts both P1 and our own model-free analysis — max scrutiny):**
+**✅ UPDATE 2026-08-19 — confound A (item 2) RESOLVED, confound 3 RECONCILED. See
+`experiments/phase8c_control_results.md` for the full P4 statistics; summary and item-3
+reconciliation below. This is now a confirmed co-design result, not a pending one.**
+
+**Original scrutiny list (2026-07-13), items now resolved in place:**
 
 1. **Config-invariance puzzle (the crux).** MXU features are derived from each conv node's STATIC
    shape → identical across all configs of a graph. Top-1 slowdown is WITHIN-graph config ranking.
@@ -46,13 +49,55 @@ this result is strong AND contradicts both P1 and our own model-free analysis �
    mechanism, or suspect a bug/leak.** First checks: (a) confirm mxu_block is truly identical across a
    graph's configs in the loaded batches; (b) confirm baseline conv predictions are near-constant
    across configs (a "collapse" the features break).
-2. **Specificity control (the Phase-2b lesson).** Is it MXU *information* or just *extra conv-node
-   features/capacity*? Add a **scrambled/random conv-feature arm** of matched dim (k=4 to mirror
-   channel). MXU > random → real co-design; MXU ≈ random → capacity/regularization effect, reframe.
-3. **Reconcile with model-free analysis:** channel-padding vs layout-sensitivity was ρ=−0.06 (n=160),
-   yet channel features close the gap. Different quantities (sensitivity ≠ rankability) or one misleads?
+2. **Specificity control (the Phase-2b lesson) — ✅ RESOLVED 2026-08-19, PASSED.** Ran the
+   pre-registered `scramble` arm (prereg A2/P4): same 4 channel columns, values permuted among
+   MXU-resolved conv nodes so the node↔value alignment (the actual information) is destroyed but
+   dimensionality/config-invariance/conv-node placement are preserved. Result: **channel
+   significantly beats scramble** (Δ−0.244, CI95=[−0.315,−0.161], t-p=.006, d=−2.35, CONV subset,
+   paired by seed), while scramble itself is statistically indistinguishable from baseline
+   (Δ−0.060, t-p=.30). **This is real MXU information, not a capacity/regularization artifact.**
+   Minor caveat: scramble's OTHER-subset placebo wobbled slightly (Δ+0.008, p=.028) — same small
+   magnitude/pattern as the `full`-arm wobble in item 4 below, disclosed but not disqualifying.
+   Full numbers: `experiments/phase8c_control_results.md`.
+3. **Reconcile with model-free analysis — ✅ RESOLVED 2026-08-19.** `scripts/analyze_mxu_misalignment.py`'s
+   ρ=−0.06 (n=95, `experiments/phase8_mxu_misalignment.md` T3) and 8c's channel result are **not
+   in tension — they measure different things at different granularities:**
+   - **What ρ=−0.06 tested:** `mxu_overhead`, a single compute-weighted SCALAR per graph
+     (`Σmacs/eff / Σmacs`, one number collapsing every conv node's `c_out_util`/`k_util` into one
+     average), correlated against real-runtime **layout sensitivity** (`config_runtime` CV) —
+     a **between-graph** question: does a graph's average packing badness predict how much its
+     runtime varies across layouts, compared to other graphs? Answer: no.
+   - **What 8c's `channel` arm actually feeds the model:** the same underlying quantities
+     (`c_out_mxu_util`, `c_out_pad_waste`, `k_mxu_util`, `k_pad_waste`) but **per-node, unaggregated**
+     — one 4-vector per conv node, not collapsed into a graph scalar — as auxiliary input to a GNN
+     that also sees topology and the graph's other node features. The outcome measured is **Top-1
+     ranking accuracy within a fixed set of graphs**, a **within-graph, model-mediated** quantity —
+     not "how much does runtime vary" but "can the model, given richer per-node features, correctly
+     order this graph's configs." **Sensitivity ≠ rankability, confirmed as the resolution**, exactly
+     as flagged as an open possibility here on 2026-07-13.
+   - **Why this is coherent with the config-invariance finding (item 1) and 8d's node_config_feat
+     resolution:** channel features are config-invariant (identical for every config of a graph,
+     confirmed by code), and `node_config_feat` dims 12–17 already carry real per-config
+     conv-kernel-layout info that the 158-dim baseline could already see (`phase8d_oracle_probe.md`,
+     resolved 2026-08-17) — yet the baseline still struggled to rank conv graphs. The likely
+     mechanism: static per-node MXU utilization acts as an **informative prior that helps the
+     shared GNN encoder learn better conv-node representations overall**, which in turn helps the
+     model make better use of the config-dependent signal that was already present but
+     under-exploited — not as new config-discriminating information in its own right (it can't be,
+     it's config-invariant). This is a capacity/regularization-*shaped* mechanism but a real-
+     information *source* — consistent with confound A passing (it's not JUST capacity, since
+     scramble — identical capacity — fails) while still explaining why a config-invariant feature
+     can move a within-graph config-ranking metric.
 4. **full-arm placebo wobble** (−0.015, p=0.02): tiny and improving, but per rules = investigate.
+   Now read alongside item 2's scramble wobble (+0.008, p=.028) as a small, recurring pattern of
+   minor OTHER-subset noise specifically on arms that add extra conv-localized columns — worth one
+   disclosure sentence in the write-up, not a separate investigation track.
 
-**Framing for the second author / paper:** this is a "surprising positive that reverses our prediction + here are the
-two controls that decide if it's real" — the honest, strong version. NOT "we fixed convolution." The
-8d oracle probe design should now FOLD IN the random-feature control (item 2) as its first arm.
+**Framing for the second author / paper (updated 2026-08-19):** this is now a *confirmed* co-design result — MXU
+geometry features close the convolution ranking gap, reversing our own pre-registered null prediction,
+with both the config-invariance mechanism (item 1) and the specificity control (item 2) resolved in
+its favor. NOT "we fixed convolution" — the gap narrows (1.42→1.12), it doesn't vanish, and the
+mechanism (item 3) is an indirect prior effect, not direct config-discriminating information. The 8d
+oracle probe is no longer a required fallback (its scramble-control first arm already ran as part of
+this confound-A resolution) — it's now an optional capstone if there's time, not load-bearing.
+See `experiments/novelty_venue_draft.md` for how this folds into the paper's final framing.
