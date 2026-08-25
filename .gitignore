@@ -44,3 +44,6 @@ meeting_prep_*.md
 checkpoints/
 logs/
 checkpoints_*.log
+
+# Browser-automation debris (Playwright MCP session snapshots/console logs)
+.playwright-mcp/
