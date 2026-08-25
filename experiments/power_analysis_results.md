@@ -41,16 +41,13 @@ anticipated reviewer question) — the field's typical n=1–3 seeds (Phase 7 au
 report no seed variance at all) cannot detect anything smaller than a huge effect, and most
 architectural claims in this subfield are not huge.
 
-## 2. Tightening curve (τ-std vs #eval-graphs) — status: PENDING real data
+## 2. Tightening curve (τ-std vs #eval-graphs) — status: DONE 2026-08-20
 
-`power_analysis.py tighten` is built and takes real per-graph τ measurements (a
-`{graph: [tau_per_seed...]}` JSON) and bootstrap-estimates how the seed-to-seed std of the
-*aggregate* τ shrinks as the number of evaluation graphs grows — the direct quantification of
-"you only have 7–20 val graphs, isn't that the point?"
-
-**Waiting on:** `experiments/phase6b_confound_checks.json` (per-graph τ across the 5 matched
-seeds for the flat and hardware models on xla:default, currently running in the background,
-no new training — see `scripts/phase6b_confound_checks.py`). Once that lands:
+`power_analysis.py tighten` bootstrap-estimates how the seed-to-seed std of the *aggregate* τ
+shrinks as the number of evaluation graphs grows — the direct quantification of "you only have
+7–20 val graphs, isn't that the point?" Run against the flat (wide-baseline) model's real
+per-graph τ on xla:default, from `experiments/phase6b_confound_checks.json`
+(`per_graph_tau.wide-baseline`, 7 graphs × 5 seeds):
 ```
 python power_analysis.py tighten \
   --per-graph-json experiments/phase6b_confound_checks.json \
@@ -58,8 +55,18 @@ python power_analysis.py tighten \
   --out experiments/power_analysis_tightening.md \
   --figure experiments/figures/power_tightening_curve.png
 ```
-Only 7 graphs are available in xla:default's own validation split (a real, disclosed
-limitation — the bootstrap can only resample *with replacement* from those 7, so the curve
-beyond ~7 graphs is an extrapolation of what more graphs *would* do under the same per-graph
-variance, not a claim that we evaluated on more graphs than we did). This will be stated
-explicitly wherever the curve is shown.
+Full table: `experiments/power_analysis_tightening.md`; figure:
+`experiments/figures/power_tightening_curve.png`.
+
+**Only 7 graphs are available in xla:default's own validation split** — a real, disclosed
+limitation. The bootstrap resamples *with replacement* from those 7, so the curve beyond n=7 is
+an extrapolation of what more graphs *would* do under the same per-graph variance, not a claim
+that we evaluated on more graphs than we actually did. At n=7 (our real sample size), bootstrap
+median std(τ) = 0.0152 (p05–p95: 0.0071–0.0549). Extrapolating to n=20 (the full sweep's target),
+median std drops only modestly to 0.0135 (p05–p95: 0.0038–0.0337) — the median is fairly flat
+past n≈8, but the **p95 tail shrinks by ~39%** (0.055→0.034), meaning the main benefit of more
+eval graphs is capping worst-case unlucky-sample variance, not moving the typical case. Read
+together with §1's MDE: at n=7 the achievable resolution is already inside the regime needed to
+distinguish the Phase-6b flat-vs-hardware Δτ≈0.165 (≈11× the n=7 median std), so the small-n
+val set is not what's limiting that particular claim; it's more relevant to smaller,
+closer-to-noise-floor effects.

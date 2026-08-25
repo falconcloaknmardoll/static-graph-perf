@@ -168,12 +168,25 @@ def main():
 
     t_flat_hw, p_flat_hw = sp_stats.ttest_rel(hw_seed_means, flat_seed_means)
 
+    # flat-vs-hier and hier-vs-hardware come from the 3-arm GPU run already on disk
+    # (checkpoints/expansion/xla_default/phase6b_summary.txt); flat-vs-hardware is the
+    # fresh re-eval above. BH-correct all 3 together per PROJECT_TIMELINE.md A4.
+    p_flat_hier, p_hier_hw = 0.0019, 0.0299
+    labels = ["flat_vs_hier", "hier_vs_hardware", "flat_vs_hardware"]
+    raw_p = [p_flat_hier, p_hier_hw, p_flat_hw]
+    adj_p = bh_correct(raw_p)
+    bh_out = {
+        "inputs_raw_p": dict(zip(labels, raw_p)),
+        "bh_adjusted_p": dict(zip(labels, adj_p)),
+    }
+
     out = {
         "per_graph_tau": {k: dict(v) for k, v in per_graph.items()},
         "tie_structure": ties,
         "flat_seed_means": flat_seed_means.tolist(),
         "hw_seed_means": hw_seed_means.tolist(),
         "flat_vs_hardware_recomputed": {"t": float(t_flat_hw), "p": float(p_flat_hw)},
+        "bh_correction_3way": bh_out,
     }
     Path("experiments/phase6b_confound_checks.json").write_text(json.dumps(out, indent=1))
     print("\nWrote experiments/phase6b_confound_checks.json")
@@ -193,6 +206,11 @@ def main():
               f"{100*d['near_tie_1pct_frac']:>13.2f}%")
 
     print(f"\nflat-vs-hardware (recomputed, 5 seeds): t={t_flat_hw:.4f}  p={p_flat_hw:.4f}")
+
+    print("\n=== BH correction across 3 pairwise Phase 6b tests ===")
+    for lbl in labels:
+        print(f"  {lbl:<20} raw p={bh_out['inputs_raw_p'][lbl]:.6f}  "
+              f"BH-adj p={bh_out['bh_adjusted_p'][lbl]:.6f}")
 
 
 if __name__ == "__main__":
