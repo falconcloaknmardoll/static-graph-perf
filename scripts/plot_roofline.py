@@ -17,11 +17,17 @@ WHY (identity + science):
   separate, the conv failure is attributable to a *hardware regime*, not just
   an op type.
 
-  ⚠️ HUMAN-VERIFY: the ridge-point annotation uses TPU v3 ≈ 123 TFLOP/s (bf16)
-  and ≈ 0.9 TB/s HBM (Jouppi et al. 2020, from memory) → ridge ≈ 137 FLOP/byte.
-  For bf16 (2 B/elem): FLOPs/byte = 2·MACs / (2·elems) = MACs/elem, so the ridge
-  lands at ~137 on our x-axis for bf16 graphs. Verify against the paper in
-  papers/ before publication; treat as annotation, not result.
+  Ridge-point annotation uses TPU v3 = 123 TFLOP/s (bf16) peak per chip and
+  900 GB/s HBM per chip → ridge = 123e12/900e9 ≈ 136.7 ≈ 137 FLOP/byte. VERIFIED
+  2026-08-25 against Google's official Cloud TPU v3 spec page (docs.cloud.google.com/
+  tpu/docs/v3: "Peak compute per chip: 123 teraflops (bf16)"; "HBM2 capacity and
+  bandwidth: 32 GiB, 900 GBps"), the architecture Jouppi et al. 2020 describes.
+  Note: `papers/jouppi2020_10_tpu-v2-v3.pdf` in this repo is a Hot Chips 2020
+  slide deck, not the full ACM paper — it does not itself contain a numeric
+  specs table, so the 123/900 figures are confirmed via the vendor spec page,
+  not extracted from that PDF. For bf16 (2 B/elem): FLOPs/byte = 2·MACs /
+  (2·elems) = MACs/elem, so the ridge lands at ~137 on our x-axis for bf16
+  graphs.
 
 Output: experiments/figures/phase8_roofline.png
 """
@@ -45,7 +51,7 @@ GRAPHS = [
     ("resnet_v1_50_official_batch_128_bf16", "ResNet-v1-50",         1.452, "#e34a33"),
     ("resnet50.4x4.fp16",                    "ResNet-50",            1.512, "#b30000"),
 ]
-RIDGE_BF16 = 137.0  # MACs/elem ≈ FLOP/byte @ bf16 — ⚠️ HUMAN-VERIFY (Jouppi 2020)
+RIDGE_BF16 = 137.0  # MACs/elem ≈ FLOP/byte @ bf16 — VERIFIED 2026-08-25 (123 TFLOP/s ÷ 900 GB/s, TPU v3/chip)
 
 
 def load_conv_points(stem: str):

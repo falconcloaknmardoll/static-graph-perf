@@ -53,8 +53,10 @@ Phase-8c retrain would have trained on the undercounted feature.
 **Roofline figure (`figures/phase8_roofline.png`, `scripts/plot_roofline.py`):** static
 roofline position (arithmetic intensity vs MXU packing utilization, MAC-weighted) of every
 conv op in the 4 conv-bearing val graphs, overlaid with Phase-5 model failure.
-- **All convs are compute-bound** (AI ≈ 90–2,900, well past the ≈137 FLOP/B TPU-v3 ridge
-  — ⚠️ ridge constant HUMAN-VERIFY vs Jouppi 2020).
+- **All convs are compute-bound** (AI ≈ 90–2,900, well past the ≈137 FLOP/B TPU-v3 ridge —
+  ridge constant VERIFIED 2026-08-25: 123 TFLOP/s bf16 peak ÷ 900 GB/s HBM, both per chip, per
+  Google's official Cloud TPU v3 spec page, the architecture Jouppi et al. 2020 describes; see
+  `scripts/plot_roofline.py` header for the full citation note).
 - **The most MXU-intense graph is the one the model handles BEST:** UNet-3D's convs have
   the highest AI (MAC-wtd ≈2,857) at util 0.75, slowdown 1.01; the failing ResNets sit at
   LOWER AI (≈700) and HIGHER packing utilization (0.92).
