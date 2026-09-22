@@ -47,3 +47,6 @@ checkpoints_*.log
 
 # Browser-automation debris (Playwright MCP session snapshots/console logs)
 .playwright-mcp/
+
+# anonymization tooling — documents the scrub procedure, must not ship in the artifact
+build_anon_mirror.sh
