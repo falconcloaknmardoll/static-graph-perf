@@ -37,7 +37,14 @@ Auditing papers is the highest hallucination-risk task in this project, so:
    them. Counter-examples are sought and reported as actively as failures (cf. PerfVec
    A20, HLS-GNN A18).
 
-> *(Conflict-of-interest note redacted for anonymous review; see ANONYMIZATION.md.)*
+> **Authorship-neutrality statement.** The rubric was applied identically to every paper
+> in the corpus. No score was conditioned on a paper's authors, their seniority, their
+> institution, or its venue — and the per-paper scores in §A are released in full so that
+> any reader can check this rather than take it on trust. Where the corpus contains work by
+> prominent groups, those papers are scored by the same rules and with the same
+> conservative tie-breaking as everything else, and counter-examples are reported as
+> actively as failures (cf. PerfVec A20, HLS-GNN A18).
+
 
 ## §A — Verified-pilot scorings (quote-grounded)
 Legend: P=pass ∂=partial F=fail. Confidence = AI-prescreened (needs human quote-check).
