@@ -21,6 +21,23 @@ Auditing papers is the highest hallucination-risk task in this project, so:
 3. **Even HTML extraction needs a human spot-check** — the fetch uses a small model. Each
    score below is `AI-prescreened`; a human confirming the quotes promotes it to `verified`.
 4. **Conservative scoring.** When ambiguous, score the weaker category (rubric rule).
+5. **Aggregate-only reporting; no singling out.** Findings are reported as corpus-level
+   statistics ("X of 20 papers fail axis 3"), never as named indictments of individual
+   papers or authors in the prose. Per-paper scores stay in §A as the auditable evidence
+   trail; the write-up argues about *a field-wide evaluation norm*, not about anyone's
+   competence. Rationale, on the merits: (a) the claim being made IS distributional — a
+   single paper's axis-3 failure is uninformative, the 100% rate is the finding; (b) n=1
+   callouts invite ad hominem reading and are the standard failure mode of rigor
+   meta-analyses; (c) 80% of the corpus is AI-prescreened only (guardrail 3), so
+   per-paper assertions are not yet individually defensible at the confidence a named
+   callout implies. Tone is deferential throughout — this work is only measurable
+   *because* these papers built the benchmarks and baselines.
+6. **Rubric applied identically to every paper.** No paper is scored more leniently or
+   more strictly on account of its authors, venue, or the auditors' relationship to
+   them. Counter-examples are sought and reported as actively as failures (cf. PerfVec
+   A20, HLS-GNN A18).
+
+> *(Conflict-of-interest note redacted for anonymous review; see ANONYMIZATION.md.)*
 
 ## §A — Verified-pilot scorings (quote-grounded)
 Legend: P=pass ∂=partial F=fail. Confidence = AI-prescreened (needs human quote-check).
