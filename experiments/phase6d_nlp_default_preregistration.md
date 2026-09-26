@@ -183,3 +183,101 @@ p-value is attributed to its own intervention and source file, and the nlp:rando
 stated explicitly. **Note this reading strengthens the distribution-dependence thesis** —
 `default` positive, `random` null-to-negative — but it must be reported as a negative, not
 laundered into a null.
+
+---
+
+## 10. AMENDMENT 1 — 2026-09-25 (per §8.6): registered-arm training failure + amended protocol
+
+> **Status: DRAFT until committed.** Drafted by Claude at the first author's instruction; the first author is the
+> registering author. Written **before** the τ of repro run B (§10.3) or any amended-protocol
+> run (§10.5) was read. The eval producing run B's τ was running when this was written, and
+> its output was deliberately not opened.
+
+### 10.1 Disclosure — §0's "unobserved" statement no longer holds
+
+On 2026-09-24/25, while diagnosing a flat training loss, Claude read (and reported to the first author)
+the following `nlp_default` validation τ values. **This is a breach of §0's premise and is
+disclosed in full:**
+
+| Run | What was read | Values |
+|---|---|---|
+| `hardware-seed42` (`.done`) | every eval | **+0.0000** at all 10 evals; best +0.0000 @ epoch 5 |
+| `hardware-seed100` (stopped at epoch ~35) | evals at epochs 5–30 | **+0.0000** at all 6 |
+| `wide-baseline-seed42` (`.done`) | every eval | rising to best **+0.2543** @ epoch 50 |
+| `wide-baseline-seed100` (`.done`) | evals at epochs 20, 40 + wandb sparkline | +0.1673 (best +0.2041 @ 15); +0.3361 (best +0.3369 @ 35) |
+| repro run C (§10.3), not a sweep run | final checkpoint | **+0.2760**, 20/20 graphs |
+
+An implied paired Δτ of roughly −0.25 was mentioned in conversation. It is **not** a
+registered result (see §10.4). Seeds 123/456/789 of both arms were never run and remain
+unobserved.
+
+### 10.2 The failure — the registered `hardware` arm does not train on `nlp:default`
+
+Under the frozen §4 protocol, the `hardware` arm collapses to a **constant output** early in
+epoch 1:
+- The ListMLE term is pinned at **1.3256**, the constant-score value, from epoch 1 onward
+  (both seeds).
+- The `hardware-seed42` best checkpoint has **79.9%** of its parameters at |w| < 1e-30,
+  score std exactly 0 on every batch, and zero gradient in every layer. It cannot recover.
+- **Why the logged τ is exactly 0.0000:** constant predictions make Kendall's τ NaN on every
+  graph. `train.evaluate()` drops NaN graphs and returns 0.0 when none remain
+  (`val_n_graphs = 0`). **These zeros are not measured correlations. They mean the metric is
+  undefined.**
+- `wide-baseline` trains normally on the same data under the same protocol.
+
+### 10.3 Diagnosis (`scripts/repro_hardware_collapse.py`, GPU, same loop as `train.py`)
+
+The repro reproduces the collapse deterministically. With the frozen recipe (lr 1e-3, lp 0.1,
+ent 0.01), the ranking loss pins by step ~240 (seed 100) and ~540 (seed 42), and weight
+death begins at step ~1160 (both seeds). Seed-100 interventions, identical batches,
+1,500 steps:
+
+| Run | lr | lp / ent | Outcome |
+|---|---|---|---|
+| A | 1e-3 | 0 / 0 | **collapses.** The auxiliary DiffPool losses are **not** the cause. |
+| B | 1e-4 | 0.1 / 0.01 | scores stay non-degenerate through step 1500. τ **not read** at time of writing. |
+| C | 1e-4 | 0 / 0 | non-degenerate; **τ = +0.2760** (20/20 graphs) at step 1499 |
+
+**Diagnosis: the learning rate is the operative factor.** Still unexplained: a slow rise in
+near-zero parameters from step ~1200 (0.8% by step 1500), seen at both learning rates.
+
+### 10.4 Registered outcome for the frozen protocol (binding)
+
+- **The §4 protocol cannot produce a valid `hardware` arm on `nlp:default`.** The registered
+  result is a **training failure**, and it is reported as such.
+- The §7 decision table is **not applied** to it. The Δτ < 0 row in particular ("model
+  family, not distribution") **must not** be invoked on an arm whose metric is undefined.
+- P1, P2 and P3 are **untested under the registered protocol**. They are not failed and not
+  confirmed.
+- **Reported in the paper regardless of §10.5:** the shared recipe trains the `hardware`
+  model on `xla:default` but not on `nlp:default`. This is a finding about trainability, not
+  about information content. The diagnostics above go in the appendix.
+
+### 10.5 Amended secondary protocol (AMENDED, not confirmatory)
+
+The amended learning rate was chosen **after** seeing diagnostic runs, one of which had a τ
+readout (run C). Results under this protocol are therefore labelled **amended/exploratory**
+everywhere they appear, and they never replace §10.4.
+
+- **Protocol:** identical to §4 except **`--lr 1e-4` for BOTH arms**. The cosine floor
+  scales automatically to 1e-6. Same seeds {42,100,123,456,789}, same auxiliary weights, same
+  eval cadence (`--eval-every 5`, unchanged, because it determines best-checkpoint
+  selection), same `best_model.pt` rule.
+- **All 10 runs are fresh**, written to a new directory
+  (`checkpoints/expansion/nlp_default_lr1e-4/`). No lr-1e-3 checkpoint is reused in the
+  primary amended contrast.
+- **Primary amended contrast (A-P1):** paired Δτ (hardware@1e-4 − flat@1e-4) > 0,
+  two-sided paired t, α = 0.05, n = 5. Power per §6 is unchanged (MDE ≈ 0.097 at σ = 0.058).
+- **⚠️ Confound check (required for A-P1 to be stated as supported):** the LR was chosen to
+  rescue the hardware arm, and lowering it may **handicap the flat arm**, which already trains
+  at 1e-3. This would inflate Δτ. A-P1 is reported as supported **only if** hardware@1e-4 also
+  beats **flat@1e-3** (paired, same test). That requires completing flat@1e-3 seeds
+  123/456/789 (3 additional runs, same as the §4 flat arm). If A-P1 passes but this check
+  fails, the verdict is **"not supported — attributable to the flat arm's LR"**.
+- **Collapse rule:** any amended run whose final `evaluate()` returns `val_n_graphs = 0` is
+  entered as **τ = 0** in its test (conservative for the hardware arm), flagged, and reported.
+  No seed is replaced.
+- §5, §6, §7 (read as A-P1 / A-P2) and §8's commitments otherwise apply unchanged, with every
+  reported number labelled **amended**.
+- **Feasibility is not a scientific criterion.** If the amended runs cannot finish before
+  submission, only §10.4 is reported. No partial-seed amended result is reported as a test.
