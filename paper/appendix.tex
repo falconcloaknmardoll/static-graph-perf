@@ -1,0 +1,58 @@
+% Appendix, uploaded SEPARATELY from the main paper (MLSys CFP). Build: make appendix
+% Reviewers are not required to read it: nothing the main paper depends on goes here.
+\documentclass{article}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+\usepackage{mlsys2025}
+\newcommand{\TODO}[1]{\textcolor{red}{[TODO: #1]}}
+\newcommand{\SLOT}[1]{\textcolor{blue}{[SLOT: #1]}}
+
+\mlsystitlerunning{Appendix}
+
+\begin{document}
+\twocolumn[
+\mlsystitle{Appendix: What Do Static Computation Graphs Know About Hardware Performance?}
+\begin{mlsysauthorlist}
+\mlsysauthor{Anonymous Author}{anon}
+\end{mlsysauthorlist}
+\mlsysaffiliation{anon}{Anonymous Institution}
+\mlsyscorrespondingauthor{Anonymous Author}{anon@example.com}
+\vskip 0.3in
+]
+\printAffiliationsAndNotice{}
+
+\appendix
+\section{Training and evaluation details}
+% Hyperparameter table (tables/hyperparameters.tex), the five pipeline bug fixes, compute harness.
+\TODO{details}
+
+\section{Pre-registrations and amendments}
+% 6d (+ Amendments 1 and 2), 6e, 8c, 8d: what was registered, when (commit), and outcome.
+% 6d breach disclosure: what nlp:default tau was read, when, before Amendment 1.
+\TODO{preregistrations}
+
+\section{The nlp:default training failure}
+% Constant-output collapse, repro, lr diagnosis.  \SLOT{amended sweep, if complete by Oct 23}
+\TODO{nlp:default}
+
+\section{Robustness checks}
+% O1/O8 eval-batch sensitivity, O9 Top-K on every cell, 6e flat LR curve, inception_v3 exclusion.
+\SLOT{O1} \SLOT{O8} \SLOT{O9} \SLOT{6e}
+
+\section{Audit: rubric and per-paper scores}
+% Rubric, selection protocol (retrospective), coverage check, per-paper axis scores.
+\SLOT{coverage}
+
+\section{Additional figures}
+% [[FIG-A1 | HAVE: phase4_topk.png]]  [[FIG-A2 | HAVE: diffpool_S_comparison_multi.png]]
+% [[FIG-A3 | HAVE: training_curves.png]] (caption: cosine-schedule artifact)
+\TODO{figures}
+
+\bibliography{refs}
+\bibliographystyle{mlsys2025}
+\end{document}

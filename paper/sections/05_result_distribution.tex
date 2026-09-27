@@ -1,0 +1,27 @@
+\section{Result I: Graph Information Is Distribution-Dependent}
+\label{sec:result1}
+% Sitting 2 (Sep 29) = P1-P5; sitting 3 (Sep 30) = P6-P10. Skeleton tab: "section 5 Result I".
+
+% P1 -- same architectures: null on one collection, clear win on another
+% [[FIG-R1 | HAVE: phase6_xla_default_discovery.png]]
+
+% P2 -- xla:random, hierarchy vs matched flat: p=.22  \SLOT{O8}
+% [[FIG-R2 | HAVE: ablation_paired.png]]
+
+% P3 -- xla:random, contention edges: p=.72; Top-K also null
+
+% P4 -- nlp:random: hardware marginally WORSE (p=.0504)
+
+% P5 -- xla:default staircase 0.033 -> 0.148 -> 0.198
+
+% P6 -- survives tuning the flat LR?  \SLOT{6e: one of four registered lines}
+
+% P7 -- decomposition: hierarchy +0.116, edges +0.049  \SLOT{O9 Top-K}
+
+% P8 -- configs subtler (7/7); mechanism open (4/128 clusters; local vs global view)
+% [[FIG-R3 | HAVE: config_subtlety_comparison.png]] (if space)
+
+% P9 -- inception_v3 carries ~half the per-graph effect
+
+% P10 -- nlp:default: registered training failure; scope to xla  \SLOT{nlp:default amended sweep}
+\TODO{result I}

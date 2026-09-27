@@ -1,0 +1,63 @@
+% MLSys 2027 submission (same format as MLSys 2025). Build: make
+% Anonymous by default: do NOT add [accepted] until camera-ready.
+\documentclass{article}
+
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{subfigure}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+\usepackage{mlsys2025}
+
+% Drafting markers (see the Paragraph skeleton tab). Remove all before submission:
+%   grep -n 'TODO\|SLOT\|\[\[FIG\|\[\[DIAG' paper/*.tex paper/sections/*.tex
+\newcommand{\TODO}[1]{\textcolor{red}{[TODO: #1]}}
+\newcommand{\SLOT}[1]{\textcolor{blue}{[SLOT: #1]}}
+
+\mlsystitlerunning{What Do Static Computation Graphs Know About TPU Performance?}
+
+\begin{document}
+
+\twocolumn[
+\mlsystitle{What Do Static Computation Graphs Know About Hardware Performance?\\
+An Information-Content Study of Learned TPU Layout Cost Models}
+
+% Real names/affiliations go in only at camera-ready; the style prints
+% "Anonymous Authors" in submission mode, and nothing identifying may be in the source.
+\begin{mlsysauthorlist}
+\mlsysauthor{Anonymous Author}{anon}
+\end{mlsysauthorlist}
+\mlsysaffiliation{anon}{Anonymous Institution}
+\mlsyscorrespondingauthor{Anonymous Author}{anon@example.com}
+
+\mlsyskeywords{learned cost models, TPU, XLA, graph neural networks, evaluation methodology}
+
+\vskip 0.3in
+
+\begin{abstract}
+% One paragraph, 4--6 sentences (MLSys guidance). Written LAST, by compressing the
+% finished sections. See the skeleton tab: "Abstract, section 9, section 10".
+\TODO{abstract}
+\end{abstract}
+]
+
+\printAffiliationsAndNotice{}
+
+\input{sections/01_introduction}
+\input{sections/02_background}
+\input{sections/04_instrument}
+\input{sections/05_result_distribution}
+\input{sections/06_audit}
+\input{sections/07_result_conv_gap}
+\input{sections/08_capstone}
+\input{sections/09_release_conclusion}
+
+% No acknowledgments in the submission (anonymity). Add at camera-ready.
+
+\bibliography{refs}
+\bibliographystyle{mlsys2025}
+
+\end{document}
