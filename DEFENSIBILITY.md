@@ -60,7 +60,7 @@ Status: 🔴 open · 🟡 mitigated by scoping/disclosure (must appear in the pa
 | **O2** | **LR parity:** one shared LR (1e-3) is *matched*, not *equally tuned*. The hardware arm is fragile at 1e-3 (it collapses on nlp:default), so is nlp:random's negative result (hw worse, p=.0504) an under-tuned arm? | Result I (nlp:random) | 🟡 disclose | State as a limitation; soften the nlp:random reading. No per-arm tuning was done in any cell. |
 | **O3** | **Small val set:** xla:default has 7 val graphs, and inception_v3 drives ~half the per-graph Δ (0.158 → 0.090 without it). | Result I | 🟡 disclose | `experiments/phase6b_confound_checks.md`. Report with and without it, prominently. |
 | **O4** | **Generality:** one dataset (TPUGraphs), one hardware target (TPU), one task (layout). | all | 🟡 scope | Scope every claim; state generality as untested. |
-| **O5** | **Absolute τ is low** (hw ≈0.19 on xla:default) vs published TPUGraphs numbers. | framing | 🔴 open | Verify comparison numbers; frame the paper as controlled Δ, not SOTA. See `VERIFICATION.md` C1. |
+| **O5** | **The flat baseline is weak on xla:default** (rewritten 2026-09-27). Flat val τ = 0.033 vs TPUGraphs' published best-baseline val τ = 0.12 (Table 2); hardware (0.198) is *above* the published number. The flat loss barely moved (1.304 → 1.291 over 50 epochs). Is the +0.165 Δτ a win over a handicapped baseline, i.e. trainability rather than information content? Also a self-consistency risk against the Phase 7 audit's Axis 5 (strawman baselines). | Result I / Finding 1 (xla:default Δτ, hierarchy decomposition) | 🔴 open, check pre-registered | Phase 6e `experiments/phase6e_flat_lr_preregistration.md`: flat at lr {1e-4, 3e-4, 3e-3} × 5 seeds, primary = hardware@1e-3 − flat@LR*. It tests the **LR** explanation only; TPUGraphs also used lr 1e-3, so the rest of the gap to 0.12 remains a disclosed comparability caveat. Drop VERIFICATION C1's "beat τ=0.34" (0.34 is the xla:random *test* number; we have no test labels). |
 | **O6** | **Phase 7 audit:** n=20, 75% AI-prescreened; audited authors may be reviewers. | Finding 4 | 🟡 partial | Raise human-verified share >25%; guardrails 5–6 (aggregate-only, identical rubric). Provenance checked 2026-09-26: the author confirmed he personally checked the 5 papers (the notes in the audit sheet are his). "Human-verified" is accurate. The session note calling it AI re-derivation was wrong and has been corrected. |
 | **O15** | **How was the audit corpus chosen?** No documented search protocol or sampling frame exists. `phase7_meta_analysis.md` has a scope rule (papers making a comparative architectural claim) and a queue of candidates found by search, but no stated search terms, sources, date range, or inclusion/exclusion log. A reviewer can read this as cherry-picking. | Finding 4 | 🔴 open | Write the selection protocol retrospectively and label it as such: sources, terms, date range, scope rule, and every candidate excluded with its reason (§C already lists some). Also: the "every score is quote-verified" wording overstates. Quotes for 15/20 papers are AI-extracted and not human-confirmed (see O6). |
 | **O7** | **Prereg breaches/amendments** (6d §0 breached; 8d P5 unsatisfiable). | 6d, 8d | 🟡 disclose | Amendment 1 (`79f81ec`), `phase8d_power_addendum.md`. Make them visible in the paper, not an appendix footnote. |
@@ -87,6 +87,17 @@ regenerated where possible.* **Status: NOT STARTED**. It begins once O1's check 
 ## 4. Log (newest first)
 
 Each entry records a check, what it found, and what changed as a result.
+
+- **2026-09-27 — O5 re-examined against the published numbers.** Pulled TPUGraphs Table 2
+  (val τ: xla:default 0.12, xla:random 0.19, nlp:default 0.30) instead of relying on memory.
+  The objection as logged ("absolute τ is low") was aimed at the wrong arm: hardware (0.198)
+  beats the published xla:default number, but the **flat arm (0.033) is far below it**. That
+  makes the xla:default win open to a trainability reading, which is the mirror image of the
+  nlp:default hardware collapse under the same shared LR. O5 rewritten. The flat-LR check is
+  pre-registered as Phase 6e (draft, frozen on commit). TPUGraphs Table 5 shows they also
+  trained at lr 1e-3, so an LR check cannot fully explain the gap to 0.12.
+  *Lesson → Gate C: check a comparison against the source table before logging the objection;
+  the shape of the objection changes what check answers it.*
 
 - **2026-09-26 — audit sheet vs repo cross-check.** Read all 20 rows of the audit sheet and
   compared them with `phase7_meta_analysis.md`. They match everywhere except two cells where
