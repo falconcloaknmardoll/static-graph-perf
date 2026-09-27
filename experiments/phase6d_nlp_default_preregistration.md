@@ -281,3 +281,46 @@ everywhere they appear, and they never replace §10.4.
   reported number labelled **amended**.
 - **Feasibility is not a scientific criterion.** If the amended runs cannot finish before
   submission, only §10.4 is reported. No partial-seed amended result is reported as a test.
+
+## 11. AMENDMENT 2 — 2026-09-27 (per §8.6): evaluation implementation + completion cutoff for §10.5
+
+> **Registered 2026-09-27; frozen on commit.** Drafted by Claude at the first author's instruction; the first author is
+> the registering author and approved the text. Written **before any §10.5 run exists**: `checkpoints/expansion/nlp_default_lr1e-4/`
+> does not exist, and flat@1e-3 seeds 123/456/789 have never been started (their directories
+> are empty). No new `nlp_default` τ has been read since Amendment 1.
+
+### 11.1 Training-time evaluation uses the verified fast evaluator
+
+- **Change:** all 13 runs in §10.5 (10 amended runs at lr 1e-4, plus the 3 flat@1e-3 runs for
+  the confound check) run with `--fast-eval`. That flag makes the training loop's periodic
+  validation call `eval_fast.evaluate_fast` instead of `train.evaluate`. **Nothing else
+  changes:** same `--eval-batch 8`, same `--eval-every`, same best-checkpoint rule.
+- **Why:** `train.evaluate` is CPU-bound, and the machine is shared with other users'
+  CPU-heavy jobs (load ≈ 25 on 2026-09-27). One `nlp_default` evaluation took 8.5–14.8 h under
+  that contention (Amendment 1, §10.3), and each run evaluates 10 times. At that pace the
+  13 runs cannot finish before submission.
+- **Why this is not a protocol change in substance:** `scripts/verify_eval_fast.py` was run
+  **on `nlp/default/valid` itself**. It PASSED: inputs are bitwise identical to
+  `train.evaluate`, and predictions differ by no more than `train.evaluate`'s own GPU
+  run-to-run noise (~1e-5, from nondeterministic scatter-add). Best-checkpoint selection could
+  differ only if two evaluation epochs' τ were within ~1e-5 of each other. That is disclosed,
+  not assumed away.
+- **Disclosed mixing:** the flat@1e-3 seeds 42 and 100 (already complete) were selected with
+  `train.evaluate`, and seeds 123/456/789 will be selected with `evaluate_fast`. Equivalence
+  rests on the verification above.
+
+### 11.2 Completion cutoff (fixes the date that §10.5's feasibility clause left open)
+
+- **If all 13 runs do not carry a `.done` marker by 2026-10-23 23:59 (America/New_York),
+  only §10.4 is reported.** No amended contrast is computed or read after the cutoff, and no
+  partial-seed result is reported (as §10.5 already states).
+- The date is set now, before any §10.5 data exists, so that it cannot be chosen after the
+  results are seen.
+
+### 11.3 Run order and locations (operational, no scientific content)
+
+- Queued after Phase 6e on the single GPU. For each seed in {42,100,123,456,789}: flat@1e-4,
+  then hardware@1e-4 → `checkpoints/expansion/nlp_default_lr1e-4/`. Then flat@1e-3 seeds
+  123/456/789 → `checkpoints/expansion/nlp_default/` (the §4 flat arm's own directory).
+- The hardware arm carries the frozen auxiliary weights (added by `launch_capped.sh`). The
+  LR override is confirmed from each run's `Fresh LR schedule` log line, as for Phase 6e.

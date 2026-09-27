@@ -441,6 +441,9 @@ def parse_args() -> argparse.Namespace:
                         "Useful to balance epoch time when one graph dominates.")
     g.add_argument("--eval-batch", type=int, default=32,
                    help="Mini-batch size for validation forward passes.")
+    g.add_argument("--fast-eval", action="store_true",
+                   help="Validate with eval_fast.evaluate_fast (same inputs and chunking, "
+                        "verified by scripts/verify_eval_fast.py; 4-5x faster).")
     g.add_argument("--num-workers", type=int, default=0,
                    help="DataLoader worker processes for parallel data loading. "
                         "0 = single-threaded (safe everywhere). "
@@ -665,7 +668,11 @@ def main() -> None:
         # ── Validation ────────────────────────────────────────────────────────
         val_str = ""
         if epoch % args.eval_every == 0 or epoch == args.epochs:
-            val_stats = evaluate(model, val_ds, device, args.eval_batch)
+            if args.fast_eval:
+                from eval_fast import evaluate_fast
+                val_stats = evaluate_fast(model, val_ds, device, args.eval_batch)
+            else:
+                val_stats = evaluate(model, val_ds, device, args.eval_batch)
             log.update(val_stats)
 
             if val_stats["val_tau"] > best_tau:
