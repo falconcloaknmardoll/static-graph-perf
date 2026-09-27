@@ -46,6 +46,74 @@ Auditing papers is the highest hallucination-risk task in this project, so:
 > actively as failures (cf. PerfVec A20, HLS-GNN A18).
 
 
+## Selection protocol — written RETROSPECTIVELY on 2026-09-27
+
+> This section was written **after** all 20 papers were scored. It records how the corpus was
+> actually assembled; it is not a protocol that was followed. Answers objection O15 in
+> `DEFENSIBILITY.md`.
+
+- **Scope rule (fixed before scoring, `meta_analysis_rubric.md`):** a paper is in scope if it
+  makes a comparative architectural claim of the form "architecture/feature X improves
+  ranking/accuracy over baseline Y" for a learned model that predicts the performance, cost,
+  runtime or throughput of programs, kernels or ML models on hardware. Papers without such a
+  claim are out of scope. Each §A entry carries its own in-scope note.
+- **How the 20 were chosen (purposive/snowball, not systematic):**
+  - *Pilot (A1–A2, from 2026-06-29):* TPUGraphs, the benchmark this project uses, and one
+    recent architecture paper on it.
+  - *Round 1 (A3–A10, completed by 2026-08-17):* the established lineage of learned cost and
+    performance models (Ithemal, GRANITE, ProGraML, TLP, PerfSAGE, NeuSight, Kaufman et al.,
+    AutoTVM), selected by the authors' knowledge of the area.
+  - *Round 2 (A11–A20, completed by 2026-08-17):* found by web searches run by background
+    agents. **The search terms, sources and dates of these searches were not logged.** Selection
+    was also steered toward finding counter-examples (guardrail 6), which biases the sample
+    toward papers that *pass* axes, i.e. conservatively for the headline.
+- **Years covered:** 2018–2026. **Venues:** mixed (ML, systems, architecture, EDA, arXiv-only).
+- **Excluded or not scored, with reasons (complete list):**
+
+  | Candidate | Reason |
+  |---|---|
+  | Ansor | Read; ruled out of scope (no comparative architectural claim about a cost model). |
+  | Halide autoscheduler (Adams et al. 2019) | PDF-only, not reachable by the fetch workflow; never scored. |
+  | AUTOCOMP (2505.18574) | Provisionally out of scope (LLM-driven search, no model training); not confirmed by a full read. |
+  | DiffHLS (2604.09240), Intelligent4DSE (2504.19649), TCL (2604.12891), GPU Forecasters (2605.31464), "Can LLMs Predict Parallel Code Performance?" (2505.03988) | Found by search snippet only; not fetched or scored before the n=20 freeze. |
+  | Kaggle "predict-ai-model-runtime" writeups | Not peer-reviewed or on arXiv; scope decision never made; not scored. |
+
+- **Consequence for claims:** the corpus is a **purposive sample of 20 canonical and recent
+  papers**, not a systematic sample of the field. Claims are worded accordingly ("in a purposive
+  sample of 20 …"). How representative it is gets checked by the coverage check below.
+
+## Coverage check — DECLARED 2026-09-27, before the search was run
+
+> Committed before any query was sent. Purpose: measure how much of a reproducible,
+> citation-ranked frame the purposive corpus already covers. **No new paper is scored.** The
+> corpus stays frozen at n=20.
+
+- **Source:** Semantic Scholar Graph API relevance search (`/graph/v1/paper/search`), top 100
+  results per query, year range 2018–2026. Raw responses are saved to `experiments/phase7_coverage/`
+  with the retrieval date (citation counts drift over time).
+- **Queries (fixed; one per sub-area of the scope rule):**
+  1. `learned cost model tensor program`
+  2. `learned performance model`
+  3. `graph neural network performance prediction`
+  4. `basic block throughput prediction`
+  5. `deep learning model latency prediction`
+  6. `high-level synthesis performance prediction graph neural network`
+
+  *Disclosed:* the sub-areas were chosen knowing the corpus, so the frame tests coverage
+  *within* these sub-areas. It does not test whether a whole sub-area is missing.
+- **Frames:** results are unioned, deduplicated, and sorted by citation count, descending.
+  - **Frame A (canonical):** the **30 most-cited in-scope papers**.
+  - **Frame B (recent):** the **10 most-cited in-scope papers from 2024–2026**, because
+    citation ranking disadvantages recent work.
+- **Screening:** title + abstract, in citation order, against the scope rule above. Screened
+  by Claude, with a one-line reason logged for **every** paper screened, and flagged for the
+  author's spot-check. **Ambiguous abstracts are screened IN.** This enlarges the frame with
+  papers the corpus may not cover, so it can only lower measured coverage.
+- **Match rule:** a frame paper is covered if the same work (same arXiv ID or same title) is in §A.
+- **Reported, whatever the number:** coverage X/30 (Frame A) and X/10 (Frame B), plus the
+  list of uncovered in-scope papers. The numbers go into the paper verbatim, and the uncovered
+  list is disclosed as not audited.
+
 ## §A — Verified-pilot scorings (quote-grounded)
 Legend: P=pass ∂=partial F=fail. Confidence = AI-prescreened (needs human quote-check).
 
