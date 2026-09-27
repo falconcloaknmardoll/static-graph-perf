@@ -67,7 +67,7 @@ Status: 🔴 open · 🟡 mitigated by scoping/disclosure (must appear in the pa
 | **O8** | **Protocol mismatch inside Result I:** Phase 2c/3 (xla:random) vs Phase 6 sweep. A diff of every saved checkpoint arg (2026-09-27) found exactly one result-affecting difference: **`eval_batch` 32 (2c/3) vs 8 (Phase 6)**. Everything else is identical (`num_workers` 4 vs 0 only changes loading). Because of O1, this is a real mismatch: τ depends on the eval batch. | Result I | 🔴 open, check queued | **Harmonise.** `scripts/eval_batch_sensitivity.py --coll xla_random` re-scores the 2c/3 checkpoints at b ∈ {8,2,32,64} → `experiments/eval_batch_sensitivity_xla_random.{md,json}`. Report every Result I cell at b=8 with the original b=32 xla:random numbers alongside. Disclose: best-checkpoint *selection* for xla:random was done at b=32 and is not redone. |
 | **O9** | **τ is not what practitioners care about.** An autotuner only uses the model's top picks; a τ gain can come entirely from reordering slow configs. Phase 4 measured Top-K on xla:random only (null, p=0.47–0.65). Never measured on xla:default, the one cell where Finding 1 claims a win. | Result I | 🔴 open, analysis declared | **Declared 2026-09-27, before computing** (see log). `scripts/topk_slowdown.py` → `experiments/topk_slowdown_<coll>.{md,json}`. |
 | **O10** | **nlp:default cell missing** from the 2×2. | Result I | 🟡 disclose | Registered training failure (Amendment 1); scope distribution-dependence to within-xla. |
-| **O11** | **Hierarchy "wins" with no mechanism.** | Result I | 🔴 open | Inspect DiffPool assignments on xla:default (`VERIFICATION.md` C7). |
+| **O11** | **Hierarchy "wins" with no mechanism.** | Result I | 🟡 disclose | Disclose in the paper as a stated limitation, with the facts: (1) the xla:default config space is measurably subtler than xla:random on 7/7 graphs (`phase6c_mechanism_check.md` §1); (2) DiffPool clustering does **not** differ by collection, so the simplest story ("hierarchy clusters xla:default differently") is ruled out (§2); (3) DiffPool uses only **4 of 128** layer-1 clusters (soft, peakedness ≈0.54). (4) **Untested hypothesis:** the flat model has a strong *local* config view (dual pooling: global mean + mean over configurable nodes, ~3-hop receptive field; `model.py`), while the hierarchical models have **no** config readout but a *global* view. The win is therefore consistent with non-local layout effects on xla:default. A locality test needs training, so it is **deferred until Phase 6e's verdict**; it is pre-registered then only if 6e confirms the win and GPU time allows. |
 | **O12** | **AI assistance** in code/analysis/audit. | all | 🟡 disclose | Disclose per MLSys policy; the author must be able to defend every design choice unaided. |
 | **O13** | **8c capacity artifact?** | Finding 3 | 🟢 answered | Scramble control: channel < scramble, Δ−0.244, t-p=.006 (`phase8c_control_results.md`). |
 | **O14** | **"Just use more seeds, obviously."** | Finding 1/4 | 🟢 answered | Power analysis: n=5 MDE 0.067–0.116; Δτ 0.05 needs 18 seeds (`power_analysis_results.md`). |
@@ -87,6 +87,17 @@ regenerated where possible.* **Status: NOT STARTED**. It begins once O1's check 
 ## 4. Log (newest first)
 
 Each entry records a check, what it found, and what changed as a result.
+
+- **2026-09-27 — O11: a proposed mechanism refuted by reading the code, before any run.**
+  Claude proposed a "dilution" mechanism: the flat model mean-pools over all nodes, so the
+  config signal carried by the few configurable nodes is diluted, and hierarchy concentrates it.
+  Before declaring the check, reading `model.py` showed the flat model uses **dual pooling**
+  (global mean + a dedicated mean over configurable nodes). The flat model's config signal is
+  therefore *not* diluted; it is the hierarchical models that lack a config readout. The
+  hypothesis was dropped without running anything. O11 → 🟡 disclose (see register). Also
+  corrected VERIFICATION C7: clusters stay soft but only 4 of 128 are used.
+  *Lesson → Gate A: read the architecture before proposing a mechanism for it. A mechanism
+  must be checked against what the model can actually compute.*
 
 - **2026-09-27 — O9 Top-K analysis DECLARED (committed before any number is computed).**
   Exploratory; it never replaces τ as Finding 1's test (6d §8.2 "no metric substitution").
