@@ -30,15 +30,23 @@ MAKERS = {
     "hierarchical":  lambda h: HierarchicalGraphSAGE(in_channels=158, hidden_channels=h, dropout=0.0),
     "hardware":      lambda h: HardwareAwareDiffPool(in_channels=158, hidden_channels=h, dropout=0.0),
 }
-base = f"checkpoints/expansion/{a.coll}"
-arms = [m for m in MAKERS if all(os.path.exists(f"{base}/{m}-seed{s}/best_model.pt") for s in SEEDS)]
+# xla:random predates the Phase 6 sweep: its arms live in the Phase 2c/3 directories.
+if a.coll == "xla_random":
+    DIRS = {"wide-baseline": "checkpoints/ablation/wide-baseline",
+            "hierarchical":  "checkpoints/ablation/diffpool",
+            "hardware":      "checkpoints/phase3/hardware"}
+else:
+    DIRS = {m: f"checkpoints/expansion/{a.coll}/{m}" for m in MAKERS}
+base = "checkpoints/{ablation,phase3}" if a.coll == "xla_random" else f"checkpoints/expansion/{a.coll}"
+ckpt = lambda arm, s: f"{DIRS[arm]}-seed{s}/best_model.pt"
+arms = [m for m in MAKERS if all(os.path.exists(ckpt(m, s)) for s in SEEDS)]
 data_root = None
 res = {}          # res[arm][batch] = [tau per seed]
 logged = {}
 for arm in arms:
     res[arm] = {b: [] for b in a.batches}; logged[arm] = []
     for s in SEEDS:
-        ck = torch.load(f"{base}/{arm}-seed{s}/best_model.pt", map_location="cpu", weights_only=False)
+        ck = torch.load(ckpt(arm, s), map_location="cpu", weights_only=False)
         args = ck["args"] if isinstance(ck["args"], dict) else vars(ck["args"])
         data_root = args["data_root"]
         m = MAKERS[arm](args.get("hidden", 128)).to(dev)
@@ -53,7 +61,8 @@ for arm in arms:
 lines = [f"# Eval-batch sensitivity — {a.coll} (post-hoc, exploratory)", "",
          f"Checkpoints: `{base}/<arm>-seed<s>/best_model.pt`, 5 seeds {SEEDS}. "
          "Scored with `eval_fast.evaluate_fast` (verified against `train.evaluate`). "
-         "Registered protocol = eval_batch 8.", "",
+         ("Originally scored at eval_batch 32 (Phase 2c/3); Phase 6 protocol = eval_batch 8."
+          if a.coll == "xla_random" else "Registered protocol = eval_batch 8."), "",
          "| arm | " + " | ".join(f"τ @ b={b}" for b in a.batches) + " |",
          "|---|" + "---|" * len(a.batches)]
 for arm in arms:

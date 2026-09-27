@@ -64,8 +64,8 @@ Status: 🔴 open · 🟡 mitigated by scoping/disclosure (must appear in the pa
 | **O6** | **Phase 7 audit:** n=20, 75% AI-prescreened; audited authors may be reviewers. | Finding 4 | 🟡 partial | Raise human-verified share >25%; guardrails 5–6 (aggregate-only, identical rubric). Provenance checked 2026-09-26: the author confirmed he personally checked the 5 papers (the notes in the audit sheet are his). "Human-verified" is accurate. The session note calling it AI re-derivation was wrong and has been corrected. |
 | **O15** | **How was the audit corpus chosen?** No documented search protocol or sampling frame exists. `phase7_meta_analysis.md` has a scope rule (papers making a comparative architectural claim) and a queue of candidates found by search, but no stated search terms, sources, date range, or inclusion/exclusion log. A reviewer can read this as cherry-picking. | Finding 4 | 🔴 open | Write the selection protocol retrospectively and label it as such: sources, terms, date range, scope rule, and every candidate excluded with its reason (§C already lists some). Also: the "every score is quote-verified" wording overstates. Quotes for 15/20 papers are AI-extracted and not human-confirmed (see O6). |
 | **O7** | **Prereg breaches/amendments** (6d §0 breached; 8d P5 unsatisfiable). | 6d, 8d | 🟡 disclose | Amendment 1 (`79f81ec`), `phase8d_power_addendum.md`. Make them visible in the paper, not an appendix footnote. |
-| **O8** | **Protocol mismatch inside Result I:** Phase 2c/3 (7-val-graph protocol) vs Phase 6 sweep. | Result I | 🔴 open, author's call | Disclose or harmonise. |
-| **O9** | **τ is not what practitioners care about.** | Result I | 🔴 open | Add Top-1 slowdown on xla:default (exploratory, existing checkpoints). |
+| **O8** | **Protocol mismatch inside Result I:** Phase 2c/3 (xla:random) vs Phase 6 sweep. A diff of every saved checkpoint arg (2026-09-27) found exactly one result-affecting difference: **`eval_batch` 32 (2c/3) vs 8 (Phase 6)**. Everything else is identical (`num_workers` 4 vs 0 only changes loading). Because of O1, this is a real mismatch: τ depends on the eval batch. | Result I | 🔴 open, check queued | **Harmonise.** `scripts/eval_batch_sensitivity.py --coll xla_random` re-scores the 2c/3 checkpoints at b ∈ {8,2,32,64} → `experiments/eval_batch_sensitivity_xla_random.{md,json}`. Report every Result I cell at b=8 with the original b=32 xla:random numbers alongside. Disclose: best-checkpoint *selection* for xla:random was done at b=32 and is not redone. |
+| **O9** | **τ is not what practitioners care about.** An autotuner only uses the model's top picks; a τ gain can come entirely from reordering slow configs. Phase 4 measured Top-K on xla:random only (null, p=0.47–0.65). Never measured on xla:default, the one cell where Finding 1 claims a win. | Result I | 🔴 open, analysis declared | **Declared 2026-09-27, before computing** (see log). `scripts/topk_slowdown.py` → `experiments/topk_slowdown_<coll>.{md,json}`. |
 | **O10** | **nlp:default cell missing** from the 2×2. | Result I | 🟡 disclose | Registered training failure (Amendment 1); scope distribution-dependence to within-xla. |
 | **O11** | **Hierarchy "wins" with no mechanism.** | Result I | 🔴 open | Inspect DiffPool assignments on xla:default (`VERIFICATION.md` C7). |
 | **O12** | **AI assistance** in code/analysis/audit. | all | 🟡 disclose | Disclose per MLSys policy; the author must be able to defend every design choice unaided. |
@@ -87,6 +87,25 @@ regenerated where possible.* **Status: NOT STARTED**. It begins once O1's check 
 ## 4. Log (newest first)
 
 Each entry records a check, what it found, and what changed as a result.
+
+- **2026-09-27 — O9 Top-K analysis DECLARED (committed before any number is computed).**
+  Exploratory; it never replaces τ as Finding 1's test (6d §8.2 "no metric substitution").
+  Fixed now: **metric** slowdown@K = best true runtime in the model's top-K / true best
+  (Phase 4's definition; `scripts/topk_slowdown.py` matches `phase4_evaluate_topk.py` on 500/500
+  random cases); **K ∈ {1, 5, 10, 100}** (1/5/10 for continuity with Phase 4, 100 for TPUGraphs
+  Table 2); per graph, then mean over val graphs, dropping graphs with < K configs for that K;
+  **eval batch 8**; existing `best_model.pt` checkpoints, not re-selected; **cells** xla:default
+  (3 arms), xla:random (3 arms, 2c/3 checkpoints re-scored at b=8), nlp:random (2 arms).
+  nlp:default is excluded (registered training failure). **Test:** paired two-sided t per arm
+  vs flat per K, n=5, no multiplicity correction because it is exploratory and every cell is
+  reported. **Commitment:** every cell and every K is reported whichever way it falls. If the
+  xla:default τ win does not show at top-K, the paper says so as a scoping sentence on
+  Finding 1's practical relevance.
+- **2026-09-27 — O8 traced to the eval batch.** A diff of every saved arg in the 2c/3 vs
+  Phase 6 checkpoints found exactly one result-affecting difference: `eval_batch` 32 vs 8. O8
+  is therefore a special case of O1. The xla:random re-score is queued behind O1.
+  *Lesson → Gate C: diff the saved run args, not the written protocol. The docs described
+  both protocols identically.*
 
 - **2026-09-27 — O5 re-examined against the published numbers.** Pulled TPUGraphs Table 2
   (val τ: xla:default 0.12, xla:random 0.19, nlp:default 0.30) instead of relying on memory.
