@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# GPU queue, 2026-09-27 (b): O1 (already running) -> O8 xla:random re-score -> O9 Top-K (xla cells)
+# GPU queue, 2026-09-27 (c): O1 eval-batch re-score -> O8 xla:random re-score -> O9 Top-K (xla cells)
 # -> Phase 6e flat-LR runs (24fa8a4) -> 6d §10.5 amended nlp:default sweep (Amendment 2, 5144bc1)
 # -> O9 Top-K nlp:random (slow, last). Detached with setsid/nohup so it survives the Claude
 # session. Re-invoking is safe: runs with a .done marker are skipped.
@@ -26,8 +26,9 @@ train() {
     else log "FAIL ${dir} rc=${rc}"; fi
 }
 
-while pgrep -f "eval_batch_sensitivity.py --coll xla_default" >/dev/null; do sleep 60; done
-log "O1 finished"
+# O1 (resumes from its .partial.json after a crash; OOM batches are recorded, not fatal)
+[[ -f experiments/eval_batch_sensitivity_xla_default.json ]] || {
+    log "O1: xla_default re-score"; python scripts/eval_batch_sensitivity.py --coll xla_default --batches 8 2 32 64; }
 
 [[ -f experiments/eval_batch_sensitivity_xla_random.json ]] || {
     log "O8: xla_random re-score"; python scripts/eval_batch_sensitivity.py --coll xla_random --batches 8 2 32 64; }
