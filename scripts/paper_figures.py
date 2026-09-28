@@ -72,7 +72,7 @@ for s in ("top", "right", "left"):
 ax.tick_params(axis="y", length=0)
 ax.set_ylim(-0.6, len(rows) - 0.2)
 fig.tight_layout(pad=0.3)
-fig.savefig(f"{FIG}/fig_k1_forest.pdf"); fig.savefig(f"{FIG}/fig_k1_forest.png", dpi=250)
+fig.savefig(f"{FIG}/fig_k1_forest.pdf", metadata={"CreationDate": None}); fig.savefig(f"{FIG}/fig_k1_forest.png", dpi=250)
 plt.close(fig)
 
 # ── 8c arm table ───────────────────────────────────────────────────────────────────────────
@@ -173,6 +173,6 @@ for ax, w in ((axes[0], 128), (axes[1], 268)):
 axes[0].annotate("", xy=(-4, 128), xytext=(-4, 0), arrowprops=dict(arrowstyle="-", color=MUTED, lw=0.5))
 axes[0].text(-9, 64, "reduction dim", rotation=90, ha="right", va="center", fontsize=6, color=MUTED)
 fig.subplots_adjust(left=0.06, right=0.99, top=0.80, bottom=0.02, wspace=0.12)
-fig.savefig(f"{FIG}/diag1_mxu_tiling.pdf"); fig.savefig(f"{FIG}/diag1_mxu_tiling.png", dpi=250)
+fig.savefig(f"{FIG}/diag1_mxu_tiling.pdf", metadata={"CreationDate": None}); fig.savefig(f"{FIG}/diag1_mxu_tiling.png", dpi=250)
 plt.close(fig)
 print("figure: diag1_mxu_tiling.pdf/png")
