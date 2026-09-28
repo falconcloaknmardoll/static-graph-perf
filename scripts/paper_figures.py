@@ -148,3 +148,31 @@ print("figure: fig_k1_forest.pdf/png | tables: phase8c_arms, mde, audit_axes, hy
 print(f"audit: fail>=3 axes {fails3}/20 (ledger 18), pass axes 1-3 {pass13}/20 (ledger 0)")
 print("audit %F vs ledger mismatches:", mismatch or "none")
 print("hyperparameter keys missing:", [k for k in keep if k not in a] or "none")
+
+# ── DIAG-1: a convolution's output channels on the 128-column MXU (schematic, no data) ────
+# Weight matrix of a lowered conv = (reduction dim) x C_out; C_out maps to the MXU's 128 columns.
+# C_out=64 fills half the columns (the rest are zero-padded, idle); C_out=256 fills two full tiles.
+from matplotlib.patches import Rectangle
+fig, axes = plt.subplots(1, 2, figsize=(3.3, 1.75), gridspec_kw={"width_ratios": [1, 2]})
+def tile(ax, x0, used_cols, label):
+    ax.add_patch(Rectangle((x0, 0), 128, 128, fill=False, ec=INK, lw=0.8))
+    ax.add_patch(Rectangle((x0, 0), used_cols, 128, fc="#57606a", ec="none"))
+    if used_cols < 128:
+        ax.add_patch(Rectangle((x0 + used_cols, 0), 128 - used_cols, 128, fc="white",
+                               ec=MUTED, lw=0, hatch="////"))
+        ax.text(x0 + used_cols + (128 - used_cols) / 2, 64, "padded\n(idle)", ha="center",
+                va="center", fontsize=6.5, color=INK, bbox=dict(fc="white", ec="none", pad=0.6))
+    ax.text(x0 + 64, -12, label, ha="center", va="top", fontsize=6.5, color=MUTED)
+tile(axes[0], 0, 64, "cols 0–127")
+axes[0].set_title("64 output channels:\n50% of columns used", fontsize=7)
+tile(axes[1], 0, 128, "cols 0–127")
+tile(axes[1], 140, 128, "cols 128–255")
+axes[1].set_title("256 output channels:\ntwo full tiles, 100% used", fontsize=7)
+for ax, w in ((axes[0], 128), (axes[1], 268)):
+    ax.set_xlim(-6, w + 6); ax.set_ylim(-34, 134); ax.set_aspect("equal"); ax.axis("off")
+axes[0].annotate("", xy=(-4, 128), xytext=(-4, 0), arrowprops=dict(arrowstyle="-", color=MUTED, lw=0.5))
+axes[0].text(-9, 64, "reduction dim", rotation=90, ha="right", va="center", fontsize=6, color=MUTED)
+fig.subplots_adjust(left=0.06, right=0.99, top=0.80, bottom=0.02, wspace=0.12)
+fig.savefig(f"{FIG}/diag1_mxu_tiling.pdf"); fig.savefig(f"{FIG}/diag1_mxu_tiling.png", dpi=250)
+plt.close(fig)
+print("figure: diag1_mxu_tiling.pdf/png")
