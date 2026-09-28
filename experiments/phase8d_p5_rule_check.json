@@ -1,0 +1,23 @@
+{
+ "source": "experiments/phase8d_results.json (frozen, not modified)",
+ "conv_oracle_mean": 1.0478307401866933,
+ "oracle_vs_channel": {
+  "delta": -0.07246986386113971,
+  "p_t": 0.19033362740102389,
+  "p_w": 0.3125,
+  "ci": [
+   -0.150114114566185,
+   0.005174386843905587
+  ],
+  "d": -0.7044469299351375
+ },
+ "s3_threshold_met": true,
+ "s8_significant_vs_channel": false,
+ "s9_rows_matched": {
+  "row1_P5_confirmed (<=1.05 and significantly beats channel)": false,
+  "row2_partial (beats channel, well above 1.05)": false,
+  "row3_oracle_approx_channel (no significant further gain)": true,
+  "row4_confound_adjacent (OTHER gain >= CONV gain)": false
+ },
+ "note": "p5_pass in phase8d_results.json = s3_threshold_met only. Under \u00a79, P5 is confirmed only if row 1 matches. Row 3's wording ('oracle ~ channel') assumed a small effect; here the effect (-0.0725) is not small but the test is underpowered (phase8d_power_addendum.md). How the paper reads row 3 is an author decision logged under DEFENSIBILITY O16."
+}
