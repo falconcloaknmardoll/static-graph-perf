@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# GPU queue, 2026-09-27 (d): same order as (c), with CPU threads capped. O1 eval-batch re-score -> O8 xla:random re-score -> O9 Top-K (xla cells)
+# GPU queue, 2026-09-27 (e): as (d), with a working LR check (train.py prints
+# 'Fresh LR schedule' only on resume, so the epoch-1 lr is checked instead). O1 eval-batch re-score -> O8 xla:random re-score -> O9 Top-K (xla cells)
 # -> Phase 6e flat-LR runs (24fa8a4) -> 6d §10.5 amended nlp:default sweep (Amendment 2, 5144bc1)
 # -> O9 Top-K nlp:random (slow, last). Detached with setsid/nohup so it survives the Claude
 # session. Re-invoking is safe: runs with a .done marker are skipped.
@@ -20,7 +21,7 @@ ADOPT_LOG=logs/capped/xla_default_wide-baseline-lr1e-4_seed42.log
 if [[ -n "${ADOPT_PID}" ]]; then
     log "waiting for adopted run ${ADOPT_DIR} (pid ${ADOPT_PID})"
     while kill -0 "${ADOPT_PID}" 2>/dev/null; do sleep 60; done
-    if grep -q "Epoch  50/50" "${ADOPT_LOG}" && grep -q "Fresh LR schedule: 1e-04" "${ADOPT_LOG}" \
+    if grep -q "Epoch  50/50" "${ADOPT_LOG}" && python scripts/check_run_lr.py "${ADOPT_LOG}" 1e-4 \
        && [[ -f "${ADOPT_DIR}/best_model.pt" ]]; then
         date > "${ADOPT_DIR}/.done"; log "DONE ${ADOPT_DIR} (adopted)"
     else
@@ -39,7 +40,7 @@ train() {
         FOREGROUND=1 bash launch_capped.sh "${coll}" "${model}" "${seed}"
     local rc=$?
     # The LR override must be confirmed in the log before anything else proceeds.
-    if ! grep -q "Fresh LR schedule: ${lr/e-/e-0}" "logs/capped/${csafe}_${tag}_seed${seed}.log" 2>/dev/null; then
+    if ! python scripts/check_run_lr.py "logs/capped/${csafe}_${tag}_seed${seed}.log" "${lr}"; then
         log "ABORT: LR ${lr} not confirmed for ${dir}"; exit 1
     fi
     if [[ ${rc} -eq 0 && -f "${dir}/best_model.pt" ]]; then date > "${dir}/.done"; log "DONE ${dir}"

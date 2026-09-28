@@ -89,6 +89,16 @@ regenerated where possible.* **Status: NOT STARTED**. It begins once O1's check 
 
 Each entry records a check, what it found, and what changed as a result.
 
+- **2026-09-27 — the registered LR check named a log line that fresh runs never print.** The
+  6e pre-registration (§4) and 6d Amendment 2 (§11.3) say each run's LR is confirmed from its
+  `Fresh LR schedule: …` log line, but `train.py` prints that line only when resuming. Fresh
+  runs never do, so the queue would have discarded the first finished 6e run and stopped. Caught
+  before any run finished. Replaced by `scripts/check_run_lr.py`, which checks the epoch-1 `lr=`
+  value against train.py's cosine schedule (validated on the running lr-1e-4 log and an old
+  lr-1e-3 log; rejects a wrong LR). Operational only: it verifies the same fact, and no
+  protocol or decision rule changed. *Lesson → Gate A: dry-run every automated check against a
+  real log before relying on it.*
+
 - **2026-09-27 — paper numbers regenerated from source files (`scripts/paper_figures.py`).**
   Three findings. (1) **Audit per-paper tables were stale.** Recomputing from the 20 §A score
   tables gave 17/20 papers failing ≥3 axes (headline says 18/20), Axis 4 at 15% and Axis 5 at
