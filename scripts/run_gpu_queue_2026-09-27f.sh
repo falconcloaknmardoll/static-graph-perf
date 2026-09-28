@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
-# GPU queue, 2026-09-27 (e): as (d), with a working LR check (train.py prints
+# GPU queue, 2026-09-27 (f): as (e) but Top-K nlp:random runs BEFORE the nlp:default sweep; with a working LR check (train.py prints
 # 'Fresh LR schedule' only on resume, so the epoch-1 lr is checked instead). O1 eval-batch re-score -> O8 xla:random re-score -> O9 Top-K (xla cells)
-# -> Phase 6e flat-LR runs (24fa8a4) -> 6d §10.5 amended nlp:default sweep (Amendment 2, 5144bc1)
-# -> O9 Top-K nlp:random (slow, last). Detached with setsid/nohup so it survives the Claude
+# -> Phase 6e flat-LR runs (24fa8a4) -> O9 Top-K nlp:random -> 6d §10.5 amended nlp:default sweep (Amendment 2, 5144bc1). Detached with setsid/nohup so it survives the Claude
 # session. Re-invoking is safe: runs with a .done marker are skipped.
 set -uo pipefail
 cd "$(dirname "$0")/.."
@@ -64,6 +63,9 @@ for LR in 1e-4 3e-4 3e-3; do
     done
 done
 
+# Declared O9 cell first: guaranteed to finish, unlike the sweep (reordered 2026-09-27).
+[[ -f experiments/topk_slowdown_nlp_random.json ]] || { log "O9: top-k nlp_random"; python scripts/topk_slowdown.py --coll nlp_random; }
+
 log "6d §10.5: amended nlp:default sweep (cutoff 2026-10-23 23:59 ET)"
 # Stage dir maps <base>/nlp_default onto the registered checkpoints/expansion/nlp_default_lr1e-4/.
 mkdir -p checkpoints/expansion/nlp_default_lr1e-4 checkpoints/_stage_lr1e-4
@@ -77,5 +79,4 @@ for SEED in 123 456 789; do
 done
 log "6d §10.5 sweep finished"
 
-[[ -f experiments/topk_slowdown_nlp_random.json ]] || { log "O9: top-k nlp_random"; python scripts/topk_slowdown.py --coll nlp_random; }
 log "queue finished"
