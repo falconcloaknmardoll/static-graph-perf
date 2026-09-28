@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# GPU queue, 2026-09-27 (c): O1 eval-batch re-score -> O8 xla:random re-score -> O9 Top-K (xla cells)
+# GPU queue, 2026-09-27 (d): same order as (c), with CPU threads capped. O1 eval-batch re-score -> O8 xla:random re-score -> O9 Top-K (xla cells)
 # -> Phase 6e flat-LR runs (24fa8a4) -> 6d §10.5 amended nlp:default sweep (Amendment 2, 5144bc1)
 # -> O9 Top-K nlp:random (slow, last). Detached with setsid/nohup so it survives the Claude
 # session. Re-invoking is safe: runs with a .done marker are skipped.
@@ -7,6 +7,26 @@ set -uo pipefail
 cd "$(dirname "$0")/.."
 source .venv/bin/activate
 log() { echo "[$(date '+%m-%d %H:%M:%S')] $*"; }
+
+# The machine is shared (24 cores, ~22 in use by other users), so the trainer's default of one
+# thread per core oversubscribes it. Not a scientific variable: numerics are unchanged.
+export OMP_NUM_THREADS=4 MKL_NUM_THREADS=4
+
+# Adopt the 6e run that queue (c) left running when it was stopped: wait for it, then mark it
+# done only if it finished all 50 epochs, confirmed its LR, and saved a checkpoint.
+ADOPT_PID=${ADOPT_PID:-}
+ADOPT_DIR=checkpoints/flatlr/xla_default/wide-baseline-lr1e-4-seed42
+ADOPT_LOG=logs/capped/xla_default_wide-baseline-lr1e-4_seed42.log
+if [[ -n "${ADOPT_PID}" ]]; then
+    log "waiting for adopted run ${ADOPT_DIR} (pid ${ADOPT_PID})"
+    while kill -0 "${ADOPT_PID}" 2>/dev/null; do sleep 60; done
+    if grep -q "Epoch  50/50" "${ADOPT_LOG}" && grep -q "Fresh LR schedule: 1e-04" "${ADOPT_LOG}" \
+       && [[ -f "${ADOPT_DIR}/best_model.pt" ]]; then
+        date > "${ADOPT_DIR}/.done"; log "DONE ${ADOPT_DIR} (adopted)"
+    else
+        log "adopted run did not finish cleanly; it will be re-run"
+    fi
+fi
 
 # train COLL MODEL SEED LR RUN_TAG CKPT_BASE_DIR EXTRA
 train() {
