@@ -90,6 +90,13 @@ regenerated where possible.* **Status: NOT STARTED**. It begins once O1's check 
 
 Each entry records a check, what it found, and what changed as a result.
 
+- **2026-10-05 — B1 (amended nlp:default sweep) chained after 6f; 6f boundary rule automated.**
+  The first author's decision, made before any B1 data exists. Queue (j) waits for queue (i), then applies 6f's
+  frozen LR\* + boundary rule via `scripts/lr_star_boundary.py` (dry-run on the finished 6e flat
+  grid reproduces LR\* = 1e-4 → 3e-5; exits non-zero on any missing or unfinished log, in which
+  case the step is skipped and logged for a manual check). The boundary step runs before B1 so
+  the Level-1 result is not delayed. B1 runs all 13 runs as registered (6d §10.5, Amendment 2);
+  ETA ~Oct 11–12, inside the Oct 23 cutoff.
 - **2026-10-05 — Phase 6e read: the flat baseline was LR-handicapped; 6f pre-registered.**
   Queue (g) finished 2026-09-30 (all 15 6e runs + O9 Top-K nlp:random) but was not read until
   today. Provisional 6e read from the log `Best val_τ` lines: flat's best LR is **1e-4 (τ 0.2254

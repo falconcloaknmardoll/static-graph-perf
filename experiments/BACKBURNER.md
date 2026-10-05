@@ -33,6 +33,10 @@ job of up to ~8 GB alongside it.
   `scripts/run_gpu_queue_2026-09-29g.sh`, with `LR` set to the boundary value.
 
 ## B1: nlp:default amended sweep
+- **✅ CHAINED 2026-10-05 (the first author):** queue (j), `scripts/run_gpu_queue_2026-10-05j.sh`, log
+  `logs/gpu_queue_2026-10-05j.log`. Starts automatically when queue (i) (6f) exits, after the 6f
+  boundary step if that fires. Expected start ~Oct 7–8, finish ~Oct 11–12: before the abstract
+  deadline (Oct 21) and well before the registered Oct 23 cutoff.
 - **What:** 10 fresh runs at lr 1e-4 (flat and hardware × 5 seeds) → `checkpoints/expansion/nlp_default_lr1e-4/`,
   plus flat@1e-3 seeds 123/456/789 → `checkpoints/expansion/nlp_default/`. All use `--fast-eval`.
 - **The three flat@1e-3 seeds are not optional within B1.** §10.5's confound check requires
