@@ -3,7 +3,8 @@
 Screened 2026-10-05 by Claude against the coverage check declared 2026-09-27 in
 `experiments/phase7_meta_analysis.md` (frame retrieved 2026-09-27, `candidates.json`, n = 571).
 Every screened paper has a decision and a one-line reason in `screening.json`.
-**Status: PROVISIONAL until the first author's spot-check** (the 31 rows marked `spot_check`).
+**Status: FINAL.** the first author spot-checked all 31 flagged calls on 2026-10-05 (check sheet: Claude Doc
+"Coverage spot-check") and agreed with every one. No decision changed.
 
 ## Result (as declared: ambiguous abstracts screened IN)
 
