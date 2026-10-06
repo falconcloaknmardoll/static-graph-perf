@@ -90,6 +90,16 @@ regenerated where possible.* **Status: NOT STARTED**. It begins once O1's check 
 
 Each entry records a check, what it found, and what changed as a result.
 
+- **2026-10-05 (late) — O15 coverage check screened (provisional until the first author's spot-check).**
+  Screened the declared frame (571 candidates) per the 2026-09-27 protocol; log in
+  `experiments/phase7_coverage/screening.{md,json}`. **Frame A 8/30, Frame B 0/10** (ambiguous → IN,
+  as declared). Sensitivity, not registered: 10/30 and 2/10 if every ambiguous call went OUT.
+  Disclosures: ~480 off-domain papers excluded on title alone (protocol says title + abstract);
+  analytical-vs-learned models and model-comparing benchmarks screened IN for consistency with
+  A1/A11/A14; 6 duplicate pairs merged; the frame itself retrieves only 10 of the 20 corpus papers
+  (misses TPUGraphs). 31 decisions flagged for spot-check. Consequence for claims: the corpus is
+  confirmed as a purposive sample, not a representative one, so the §8 wording "a purposive sample
+  of 20" stands and the uncovered in-scope list is disclosed as not audited.
 - **2026-10-05 (22:40) — B0 lost 2 seeds to a wandb timeout; completed in queue (j); train.py hardened.**
   Queue (h) finished seeds 42, 100, 123 at flat lr 3e-5 (best val τ 0.2154, 0.2040, 0.1894). Seed 456
   crashed inside `wandb.init` (90 s startup timeout, before epoch 1), so the LR check found no epoch-1
