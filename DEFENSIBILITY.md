@@ -90,6 +90,22 @@ regenerated where possible.* **Status: NOT STARTED**. It begins once O1's check 
 
 Each entry records a check, what it found, and what changed as a result.
 
+- **2026-10-05 (late) — Axis 3 human-verified for all 20 audit papers; one correction (A2 F → ∂); headline 90% → 85%.**
+  The first author checked the 15 papers not in the August sample against their PDFs (check sheet: Claude Doc
+  "Axis 3 check"); Claude re-verified the factual claims in the first author's log (rendered AutoTVM Fig. 4,
+  COGNATE Fig. 4; Polynormer Table 8; Omniwise Table 3). Changes:
+  (1) **A2 TGraph Axis 3 F → ∂**: Table 2 reports ±1-sigma for every cell of the headline, no test
+  (rubric ∂ anchor). First correction toward a looser score; all earlier ones went stricter.
+  (2) **A10 AutoTVM kept F** under the rubric's "when in doubt, weaker category" rule: Figs. 4–5 show
+  shaded bands that are never defined. A10's Axis 1 evidence ("single curves") was factually wrong
+  and is corrected. (3) A17 evidence corrected (no StarCoder2 numbers exist; choice asserted).
+  (4) Claim-accuracy notes logged for A12 and A15 (text overstates its own tables); Axis 5 scores
+  NOT changed — candidate for an Axis 5 review if wanted.
+  **Headline consequences:** Axis 3 = 19 F + 1 ∂ (95% F); "no paper runs a significance test" still
+  20/20; papers failing ≥3 axes 18/20 (90%) → **17/20 (85%)** (A2 now fails only Axes 2, 4);
+  0/20 pass Axes 1–3 unchanged. Propagated to `phase7_meta_analysis.md` §A/§D, `paper_outline.md`,
+  `paper/tables/audit_axes.tex` (regenerated; ledger check passes), `08_audit.tex` markers, Desk.
+  Wording rule: say "no paper runs a significance test", never "100% fail Axis 3".
 - **2026-10-05 (late) — O15 coverage check FINAL: author spot-check agrees with all 31 flagged calls.**
   The first author reviewed every ambiguous/boundary decision (full abstracts, Verdict per paper) and overturned
   none. Registered result stands: **Frame A 8/30, Frame B 0/10.** §8 ¶2 can describe the screening as

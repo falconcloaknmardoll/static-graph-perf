@@ -116,7 +116,7 @@ for p in papers:
 assert len(scores) == 20 and all(len(r) == 5 for r in scores), [len(r) for r in scores]
 AX = {1: "Seeds / variance", 2: "Parameter-matched", 3: "Significance test",
       4: "Eval-set integrity", 5: "Effect vs noise"}
-LEDGER_F = {1: 80, 2: 85, 3: 100, 4: 20, 5: 30}
+LEDGER_F = {1: 80, 2: 85, 3: 95, 4: 20, 5: 30}   # Axis 3: 100 → 95 after the 2026-10-05 human check (A2 F → ∂)
 lines = [r"\begin{tabular}{lccc}", r"\toprule", r"Axis & Fail & Partial & Pass \\", r"\midrule"]
 mismatch = []
 for a, name in AX.items():
@@ -145,7 +145,7 @@ open(f"{TAB}/hyperparameters.tex", "w").write(
     + "\n".join(lines) + "\n")
 
 print("figure: fig_k1_forest.pdf/png | tables: phase8c_arms, mde, audit_axes, hyperparameters")
-print(f"audit: fail>=3 axes {fails3}/20 (ledger 18), pass axes 1-3 {pass13}/20 (ledger 0)")
+print(f"audit: fail>=3 axes {fails3}/20 (ledger 17), pass axes 1-3 {pass13}/20 (ledger 0)")
 print("audit %F vs ledger mismatches:", mismatch or "none")
 print("hyperparameter keys missing:", [k for k in keep if k not in a] or "none")
 

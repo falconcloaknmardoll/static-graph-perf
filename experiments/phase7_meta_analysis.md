@@ -126,7 +126,7 @@ so auditing it is calibration, not an attack.
 |---|---|---|
 | 1 Seeds/variance | **F** | Layout: "we train the model once with only a few set of hyperparameters"; Tile: "we train each model variant three times" but **no std/CI reported**. Headline layout = single run. |
 | 2 Param-matched | **F** | NOT STATED — no capacity/param control between compared variants. |
-| 3 Significance test | **F** | NOT STATED — no t-test/Wilcoxon/bootstrap. |
+| 3 Significance test | **F** (human-confirmed 2026-10-05) | NOT STATED — no t-test/Wilcoxon/bootstrap. |
 | 4 Eval-set integrity | **∂** | "We split the data using 80-10-10 ratio by graphs"; reports test τ (held-out test exists ✓) but few eval graphs per collection + "report final metrics only on 1,000 configurations", no power caveat. |
 | 5 Effect vs noise | **F** | "GraphSAGE vs GCN … comparable" with no numbers/variance → gain-vs-noise not assessable. |
 *Fails ≥3 of 5 axes (1,2,3,5).*
@@ -138,10 +138,10 @@ so auditing it is calibration, not an attack.
 |---|---|---|
 | 1 Seeds/variance | **∂** | Reports dispersion ("confidence ranges … 1-sigma", "0.6840 ± 0.0110") — better than most — but via "K-fold cross-validation with K=20" and "pick the top-4 folds by the validation score" (fold selection, not independent seeds). |
 | 2 Param-matched | **F** | NOT STATED — "does not report model sizes, parameter counts, or capacity comparisons". |
-| 3 Significance test | **F** | NOT STATED — no hypothesis test for the improvement. |
+| 3 Significance test | **F** → **∂** (human verification 2026-10-05) | No hypothesis test, p-value or CI, but variance IS reported for the headline's components: Table 2 gives ±1-sigma for every TGraph cell feeding the layout mean — 0.6840 ± 0.0110 (xla:random), 0.4785 ± 0.0031 (xla:default), 0.9713 ± 0.0008 (nlp:random), 0.5628 ± 0.0027 (nlp:default); §2.5.4: "the confidence ranges are reported as 1-sigma." The headline mean row (0.674 vs 0.610) carries no propagated uncertainty and the Xu 2023 baseline has none. Matches the rubric's ∂ anchor ("reports variance but no test"). |
 | 4 Eval-set integrity | **F** | "TpuGraphs … does not provide public test data annotations. Hence, we report the cross-validation score" on "merged train/validation" AND "pick the top-4 folds by the validation score" → selection leakage, no held-out test. |
 | 5 Effect vs noise | **∂** | TGraph τ=0.674 vs Xu-2023 0.610 (Δ≈0.064) with ±~0.011 ranges → gain exceeds its own σ, but no param-match so not attributable to the idea; baseline reasonable. |
-*Fails 2–3 of 5; notably has dispersion (Axis 1 ∂) but a leaky eval (Axis 4 F).*
+*Fails 2 of 5 outright (2, 4) after the 2026-10-05 Axis 3 correction; has dispersion (Axes 1, 3 ∂) but a leaky eval (Axis 4 F).*
 
 ### A3. GRANITE (Sýkora et al., Google, basic-block throughput GNN) — arXiv 2210.03894 [PDF, read via ar5iv HTML render]
 *In-scope:* central claim is architectural — Granite (GNN) beats Ithemal (LSTM) and an
@@ -151,7 +151,7 @@ enhanced "Ithemal+" baseline on basic-block throughput estimation.
 |---|---|---|
 | 1 Seeds/variance | **F** | NOT STATED. Headline is a single point estimate: "Our results establish a new state-of-the-art for basic block performance estimation with an average test error of 6.9%." No seed count, no std/CI anywhere in the results. |
 | 2 Param-matched | **F** | NOT STATED. Table 4 gives Granite's own hyperparameters (e.g. "Node Embedding Size: 256") but no total parameter count for Granite, Ithemal, or Ithemal+, and no capacity-matched comparison; paper only says "we re-implemented the Ithemal model using the same version of TensorFlow." |
-| 3 Significance test | **F** | NOT STATED — no t-test/Wilcoxon/bootstrap CI anywhere; improvement asserted from raw MAPE numbers: "Granite outperforms Ithemal across all the microarchitectures by at least 1.67%, and by 1.93% on average." |
+| 3 Significance test | **F** (human-confirmed 2026-10-05) | NOT STATED — no t-test/Wilcoxon/bootstrap CI anywhere; improvement asserted from raw MAPE numbers: "Granite outperforms Ithemal across all the microarchitectures by at least 1.67%, and by 1.93% on average." |
 | 4 Eval-set integrity | **P** | "we randomly split each dataset into a training part comprising 83% of blocks and a test part containing 17% of blocks. We use the *same* split of the data set in all experiments." Test set is large (>300K blocks on BHive, >1.4M on the Ithemal-derived set) and selection/tuning is done on a separate slice: "We further split the training data into training (98%) and validation (2%)." Held-out test, adequate size, selection kept separate. |
 | 5 Effect vs noise | **∂** | Gain vs Ithemal is consistent across chips ("outperforms Ithemal across all the microarchitectures by at least 1.67%") and Ithemal is the genuine prior SOTA (not a strawman), but the margin over the *enhanced* baseline is much smaller — Ithemal+ 7.74% vs Granite 6.91% avg MAPE (~0.83 pts) — and with zero variance reported (Axis 1 = F) there is no way to check either gap against a noise floor. Conservative call: partial, not pass. |
 *Fails 3 of 5 axes (1, 2, 3); notably the only paper so far to score full P on Axis 4.*
@@ -164,7 +164,7 @@ hand-built analytical simulators (IACA, llvm-mca) on throughput estimation accur
 |---|---|---|
 | 1 Seeds/variance | **F** | NOT STATED. "We randomly assign 80% of the collected blocks to the train set and 20% to the test set" — no mention of repeated runs, seeds, std, or CI anywhere in the reported error/correlation tables. |
 | 2 Param-matched | **F** | NOT STATED. No parameter counts given for Ithemal, and the baselines (IACA, llvm-mca) are hand-written analytical tools with no comparable "capacity" concept, so a capacity-matched comparison is neither performed nor really well-posed here — but the rubric still requires an explicit statement/control for the axis to pass, and none exists. |
-| 3 Significance test | **F** | NOT STATED. Table 3 reports point-estimate error/correlation metrics with no confidence intervals or hypothesis tests. |
+| 3 Significance test | **F** (human-confirmed 2026-10-05) | NOT STATED. Table 3 reports point-estimate error/correlation metrics with no confidence intervals or hypothesis tests. |
 | 4 Eval-set integrity | **P** | "We randomly assign 80% of the collected blocks to the train set and 20% to the test set" on a dataset of "1,416,473 unique basic blocks" (Haswell) — large, clearly held-out test split, standard random assignment, no stated selection leakage. |
 | 5 Effect vs noise | **∂** | Effect size is large and the baselines are legitimate, widely-used industrial tools rather than strawmen: Haswell error 0.089 (Ithemal) vs 0.200 (llvm-mca) and 0.209 (IACA), Spearman correlation 0.890→0.960 — roughly a 55% relative error reduction. This is a big gap unlikely to be pure noise, but since Axis 1 is F (no variance/seed data at all), the paper itself gives no way to formally rule out noise, so we do not award full P without that check. |
 *Fails 3 of 5 axes (1, 2, 3); like GRANITE, clean on eval-set integrity (Axis 4 = P) and has
@@ -196,7 +196,7 @@ efficiency.
 |---|---|---|
 | 1 Seeds/variance | **F** | NOT STATED. Table 5 reports single top-k scores per platform; no error bars, std, or repeated-run reporting anywhere. |
 | 2 Param-matched | **F** | NOT STATED. Architecture is described ("Shallow linear layers in the model upsample the embedding size from 22 to 256"; "using one layer of the self-attention module is enough") but no parameter counts or training-budget comparison is given for TLP vs. the TenSet MLP vs. Ansor's XGBoost model. |
-| 3 Significance test | **F** | NOT STATED — no statistical test anywhere in the results section. |
+| 3 Significance test | **F** (human-confirmed 2026-10-05) | NOT STATED — no statistical test anywhere in the results section. |
 | 4 Eval-set integrity | **P** | Clean, named held-out test networks: "we hold out a test set that consists of five networks, ResNet-50, MobileNet-V2, ResNext-50, BERT-tiny, and BERT-base," with the rest split "training and validation sets at a ratio of 9:1" over the large TenSet corpus ("8.65 million tensor programs"). Held-out networks unseen in training/validation — solid separation. |
 | 5 Effect vs noise | **∂** | Headline claim is large — "TLP can speed up the average search time by 9.1× and 3.0× on CPU and GPU workloads, respectively, compared to the state-of-the-art implementation" — but the paper itself flags a quality caveat that tempers a clean "TLP is just better" reading: "There is still a big gap between the performance of Ansor tuning 2000 times and the performance of TLP/MTL-TLP tuning the minimum times." I.e. the win is on search-time-to-a-given-quality, not on quality at matched budget, and that tradeoff is stated but not quantified with variance. |
 *Fails 3 of 5 axes (1, 2, 3); a genuine counter-example on eval-set integrity (Axis 4 = P,
@@ -211,7 +211,7 @@ rather than full pass.*
 |---|---|---|
 | 1 Seeds/variance | **F** | NOT STATED. No standard deviations, confidence intervals, or error bars appear anywhere in the results tables; MAPE is reported as single numbers per target. |
 | 2 Param-matched | **F** | NOT STATED — no parameter counts for PerfSAGE, Eagle, or nn-Meter are given, and no capacity control between them is discussed. |
-| 3 Significance test | **F** | NOT STATED — only point-estimate MAPE comparisons, no hypothesis test. |
+| 3 Significance test | **F** (human-confirmed 2026-10-05) | NOT STATED — only point-estimate MAPE comparisons, no hypothesis test. |
 | 4 Eval-set integrity | **P** | "The sampled TFLite models are split into 80% training data and 20% test data" over "134,912 DNNs randomly sampled from four task search spaces" — large, clearly held-out test split. |
 | 5 Effect vs noise | **F** | The headline gap is enormous — PerfSAGE "<5% [MAPE] across all targets" vs Eagle's "41.138%" on CNN-CIFAR10 CPU latency — but the paper itself concedes the baseline is out of its depth: "Eagle is primarily designed for NASBench201, a well defined design space with detailed architecture rules. Thus, it struggles with a more diverse collection of models." This is a self-acknowledged mismatched/strawman baseline comparison, the exact Axis-5 F anchor. |
 *Fails 4 of 5 axes (1, 2, 3, 5); the one paper so far whose own text concedes the baseline
@@ -226,7 +226,7 @@ end-to-end regression/MLP predictors (Habitat, "Li et al.") on unseen-GPU latenc
 |---|---|---|
 | 1 Seeds/variance | **F** | NOT STATED for model variance/seeds. "Latency is measured by running each operator 25 times and averaging the results" is a *measurement*-noise control, not a training-seed/variance report; no std/CI for the learned model's predictions across runs. |
 | 2 Param-matched | **F** | NOT STATED / not matched. Architecture given for NeuSight's own MLP ("Each MLP comprises 8 hidden layers, each with 512 hidden units") but the Habitat baseline is explicitly *not* capacity-matched — the paper reports diverging from Habitat's original size: "we train the MLP following the methodology presented in their paper, but with the larger MLP for higher accuracy," with no total parameter counts given for either model. |
-| 3 Significance test | **F** | NOT STATED — only point-estimate percentage errors reported. |
+| 3 Significance test | **F** (human-confirmed 2026-10-05) | NOT STATED — only point-estimate percentage errors reported. Human check: Fig. 7 errors are point averages per model and GPU; the OOD average (8.1%) and maximum (28.2%) are a range across workloads, not run-to-run variance. |
 | 4 Eval-set integrity | **P** | Explicit, strong held-out design: trained on "5 training set GPUs," tested on a GPU variant never trained on ("A100-40GB variant was used for training but the A100-80GB variant... was used as the testset") plus genuinely out-of-distribution GPUs ("H100, L4"), and models "trained only on a subset of GPT3 and OPT model dimensions" then tested beyond that subset. One ambiguity noted: "We reserve 20% of this sample dataset for validation" but it is unclear whether that validation informed hyperparameter choices in a way that could leak into the OOD test claims — not enough to drop below P given how explicit the GPU/model holdout otherwise is. |
 | 5 Effect vs noise | **∂** | Very large claimed gains against a genuine (not obviously strawman) prior-SOTA baseline — in-distribution: "NeuSight shows a percentage error of only 9.7% for inference and 7.3% for training" vs "Habitat shows 220.9% and 725.8%, and Li et al. shows 61.2% and 58.3%"; OOD headline: reduces GPT3-on-H100 error "from 121.4% and 30.8% to 2.3%." The paper made a stated effort at a fair comparison ("For fair comparisons, we train the baselines with the up-to-date training dataset as NeuSight"), and the gap is qualitatively far larger than any plausible seed noise — but with zero variance/seed data reported (Axis 1 = F), there is no formal way to confirm this against a noise floor, so conservative scoring keeps this at partial rather than full pass. |
 *Fails 3 of 5 axes (1, 2, 3); like NeuSight's TenSet/TLP cousins, clean on eval-set integrity
@@ -244,7 +244,7 @@ more careful than every other paper scored this session.
 |---|---|---|
 | 1 Seeds/variance | **∂** | Headline cost-model accuracy (Table 2, e.g. "3.7% mean error") has NOT STATED seeds/variance — "we did a hyperparameter search...and selected the best-performing model for each task on the validation set," no repeats mentioned. But the fusion-autotuner result *does* report a dispersion: "We run the autotuner on each program 10 times and report the best speedup found... Solid bars show the median best speedup; error bars range from min to max." Partial credit for that secondary result, not the headline comparison — matches the rubric's "seeds for some results but not the headline comparison" ∂ anchor exactly. |
 | 2 Param-matched | **∂** | No baseline is a neural net (it's a hand-tuned analytical model), so a param match to it isn't well-posed, but for the paper's *internal* architecture ablation it explicitly claims rough parity: GraphSAGE uses "roughly the same number of learnable parameters compared to GAT" — a real but qualitative/unverified claim (no exact counts given for either), which is more than most papers in this queue attempt. |
-| 3 Significance test | **F** | NOT STATED — no t-test/Wilcoxon/bootstrap CI anywhere; comparisons are point estimates ("3.7% mean error" vs "6.1% mean error"). |
+| 3 Significance test | **F** (human-confirmed 2026-10-05) | NOT STATED — no t-test/Wilcoxon/bootstrap CI anywhere; comparisons are point estimates ("3.7% mean error" vs "6.1% mean error"). |
 | 4 Eval-set integrity | **∂** | Genuinely rigorous *design* — two separate held-out protocols are tested for robustness: a random split and a harder manual split "chosen by hand to minimize the subjective similarity" between train and test programs, both with test kept separate from training and tuning done on a separate validation slice. But the random-split test set is small: "93" train / "8" validation / "8" test *programs* (the kernel counts within them are large — "1.4M" test kernels — but only 8 held-out programs), which is squarely the rubric's "very few graphs (single digits)" ∂ anchor despite the otherwise careful design. |
 | 5 Effect vs noise | **∂** | Not a uniform win — and that is the notable part. Fusion task: learned "4.5 MAPE" clearly beats analytical "31.1 MAPE" (holds up on the manual split too: "6.2" vs "18.1"). But tile-size task on the harder manual split, **the baseline wins**: learned "6.3%" vs analytical "2.3%" mean error — i.e. the paper honestly reports its own method losing to the hand-tuned baseline under the more realistic split, rather than only showing the split where it wins. Baseline is explicitly a strong, "heavily-optimized analytical performance model," not a strawman. |
 *Fails only 1 of 5 axes outright (Axis 3); the rest are ∂ rather than F — this is the least-bad
@@ -263,9 +263,9 @@ different (non-architectural) kind of comparison and are out of the rubric's sco
 
 | Axis | Score | Evidence (quoted) |
 |---|---|---|
-| 1 Seeds/variance | **F** | NOT STATED. Figure 4 compares "GBT- and TreeGRU-based models" against baselines with single curves only — no error bars, CI, or std anywhere in the cost-model comparison. |
+| 1 Seeds/variance | **F** | NOT STATED. *Corrected 2026-10-05 (human check of the PDF):* Figures 4 and 5 are NOT single curves — every curve has a shaded band (C1, C2, C5, C6), but the bands are never defined in the captions or text (searched: shaded, band, interval, deviation, variance, error bar), and no seed or run count is stated. Score kept F: undefined bands are not reported variance (rubric: when in doubt, score the weaker category). |
 | 2 Param-matched | **F** | NOT STATED. "We use XGBoost, which has proven to be a strong feature-based model" and TreeGRU "hidden size of 128" (from the appendix) are the only architecture details given; no XGBoost tree depth/leaf-count or total-parameter figures are reported for either side, so no capacity match is verifiable. |
-| 3 Significance test | **F** | NOT STATED — claims like "both the GBT and TreeGRU models outperformed the black-box methods and found operators that were 2× faster" are asserted from raw numbers with no test. |
+| 3 Significance test | **F** (human-confirmed 2026-10-05) | NOT STATED — "both the GBT and TreeGRU models outperformed the black-box methods and found operators that were 2× faster" (§6.1 prose only) with no test. Fig. 4 shows unlabeled shaded bands around each curve; because they are never defined, they are not counted as reported variance (rubric tie-break: weaker category). Unlike A2, which states its ranges are 1-sigma. |
 | 4 Eval-set integrity | **∂** | The transfer-learning experiment has a genuine held-out design — "We randomly picked samples from 𝒟′ collected from C1,C2,C3,C4,C5,C6 and used them to form the source domain... We then compared the performance... for target workloads C7,C8,C9" — but the target/test set is only 3 workloads (single digits, no power caveat stated), and the single-operator baseline comparisons (Fig. 10) have "no explicit train/test partition... documented." |
 | 5 Effect vs noise | **∂** | The specific cost-model claim ("outperformed the black-box methods and found operators that were 2× faster") is against "black-box methods" (i.e. cost-model-free search), which is a plausible but not clearly matched comparison — no detail on how well-tuned that black-box baseline search was, and no variance to check the 2× figure against. Not scored F since 2× is a large, plausible-real gap and this isn't obviously a strawman, but not P given the missing tuning/variance detail. |
 *Fails 3 of 5 axes (1, 2, 3) on its cost-model-architecture claims specifically.*
@@ -300,7 +300,7 @@ the r.jina.ai proxy fetch of the raw PDF finally surfaced the appendix text.
 |---|---|---|
 | 1 Seeds/variance | **F** | NOT STATED. "Tables 8 and 9 report only point estimates without standard deviations or error bars, and no mention of multiple runs or seeds appears." |
 | 2 Param-matched | **F** | NOT STATED. "The paper provides no model size or parameter count comparisons for either model on this task." |
-| 3 Significance test | **F** | NOT STATED — "No statistical significance testing is mentioned for TpuGraphs results." |
+| 3 Significance test | **F** (human-confirmed 2026-10-05) | NOT STATED — Appendix L Tables 8–9 (TpuGraphs) are single numbers, no ±, no test. *Scoping:* the paper's main Tables 1–3 (node classification) do report ± std over 10 runs with no test, which would be ∂; F holds only because the audit scores the TpuGraphs comparison (see in-scope note). *Claim-accuracy notes (Axis 5 material, score unchanged):* the text says Polynormer/Polynormer-local beat GraphSAGE "on all collections", but Table 8 has Polynormer-Local below GraphSAGE on XLA-Default (73.7 vs 77.3); the text gives the XLA-Random gain as 10.3 points, Table 8 gives 87.6 − 76.3 = 11.3. |
 | 4 Eval-set integrity | **F** | The paper states "we only change the model architecture while keeping all other configurations the same" but "the specific data split proportions are not described anywhere in the paper" for the TpuGraphs experiments — matches the rubric's "never states which split" F anchor exactly, even though TPUGraphs itself has an official split elsewhere. |
 | 5 Effect vs noise | **∂** | Large claimed gains — "10.3% accuracy improvement over GraphSAGE... on the XLA-Random collection" (76.3%→87.6%), and on the full Layout+Tile benchmark "31.8% accuracy improvement over the baseline model" (30.1%→61.9%) — clearly non-trivial margins, and GraphSAGE is a legitimate baseline (TPUGraphs' own default), not a strawman. But with zero variance/seed data (Axis 1 = F), there is no formal way to check against noise, so conservative scoring keeps this at partial. |
 *Fails 4 of 5 axes (1, 2, 3, 4) — the weakest eval-set-integrity score of the corpus so far
@@ -318,7 +318,7 @@ fields are still genuinely unstated in the paper itself (not an extraction artif
 |---|---|---|
 | 1 Seeds/variance | **∂** | The paper states it used "5-fold cross validation across our experiments," which is a form of multiple-run evaluation, but "provides no information about random seed initialization or reported standard deviations/confidence intervals" — i.e. dispersion across those 5 folds is never reported for the headline numbers. Matches the rubric's ∂ anchor ("multiple runs but no dispersion reported"). |
 | 2 Param-matched | **F** | NOT STATED. The model is described only as "a simple 3-layer multi-layer perceptron using ReLU as the nonlinear activation function" with "no specification of layer dimensions, parameter counts, or model size," and no capacity discussion versus the heuristic baseline (which, like Ithemal/GRANITE's analytical baselines, has no comparable "capacity" concept, but the rubric still requires an explicit statement to pass). |
-| 3 Significance test | **F** | NOT STATED — "no formal statistical hypothesis testing or significance testing procedures." |
+| 3 Significance test | **F** (human-confirmed 2026-10-05) | NOT STATED — "no formal statistical hypothesis testing or significance testing procedures." |
 | 4 Eval-set integrity | **F** | "specific proportions for train/validation/test are absent"; only the total dataset size is given ("we collect 5878 pairs of PnR decisions and normalized throughputs in total"), with no confirmation selection and reporting splits differ. |
 | 5 Effect vs noise | **∂** | Headline claims — "31%-52% more accurate[y]" than baseline (abstract), and in-text "21% improvement in relative error and 34% improvement in Spearman rank correlation" — are sizeable, and the baseline is explicitly described as a real, effortful analytical system ("It takes a large engineering team to develop and refine these heuristics"), not an obvious strawman. But with no variance/seed dispersion reported for these numbers, conservative scoring keeps this at partial. |
 *Fails 3 of 5 axes (2, 3, 4); resolves last round's "suspiciously thin extraction" flag — this is
@@ -351,7 +351,7 @@ general-purpose hardware, fine-tuned on emerging accelerators) vs baseline cost 
 |---|---|---|
 | 1 Seeds/variance | **F** | NOT STATED. "The paper reports geomean speedups (e.g., '1.47× (up to 5.46×) for SpMM') but provides no information about number of experimental runs, seeds, standard deviations, confidence intervals, or error bars." |
 | 2 Param-matched | **F** | NOT STATED. "The paper does not report the total parameter counts for COGNATE's model or baseline models (WacoNet, WACO+FA, WACO+FM), nor does it discuss whether models were capacity-matched." |
-| 3 Significance test | **F** | NOT STATED — "No statistical significance tests are mentioned or reported." |
+| 3 Significance test | **F** (human-confirmed 2026-10-05) | NOT STATED — "No statistical significance tests are mentioned or reported." Fig. 4 is geomean bars without error bars; per-matrix plots (Figs. 5, 13–15) are descriptive. *Claim-accuracy note (Axis 5 material, score unchanged):* the text calls WACO+FM the closest alternative (28.44% margin), but in Fig. 4 "No Transfer" is closer on every operation, e.g. SpMM (SPADE) 1.29× vs COGNATE Top-1 1.40× (≈8.5%). |
 | 4 Eval-set integrity | **P** | Explicit held-out design: "715 real-world matrices from the SuiteSparse Matrix Collection, ensuring that none of the evaluation data samples overlapped with the training set" — training data separately described as "1,500 matrices for each hardware platform, with up to 1,000 matrices used for model training... and the remainder was set aside for validation." Clear non-overlapping test set of adequate size. |
 | 5 Effect vs noise | **∂** | Headline speedups ("1.47× (up to 5.46×) for SpMM and 1.39× (up to 4.22×) for SDDMM") are large versus WacoNet, a genuine prior-SOTA baseline — but one ablation baseline is notably weak ("WACO+FA... achieving only 1.04×"), a mild "some comparison points are barely-tuned variants" concern, and no variance is reported to check the headline numbers against noise. |
 *Fails 3 of 5 axes (1, 2, 3); a genuine counter-example on eval-set integrity (Axis 4 = P, one
@@ -382,7 +382,7 @@ vs StarCoder2 3B as the base model for an LLM-based GPU-kernel performance-count
 |---|---|---|
 | 1 Seeds/variance | **F** | NOT STATED — "Table 4 reports point percentages only (e.g., '89.9%') without error bars or uncertainty quantification." |
 | 2 Param-matched | **∂** | Both backbones are the same nominal size class — "LLaMA 3.2: '3 billion parameters'... StarCoder-2: '3B' (implied 3 billion)" — a rough, stated parity similar to the A9 GraphSAGE-vs-GAT precedent, but not an exact/verified match nor a stated training-budget match. |
-| 3 Significance test | **F** | NOT STATED — "No significance tests, p-values, or hypothesis testing results are reported." |
+| 3 Significance test | **F** (human-confirmed 2026-10-05) | *Corrected evidence:* Table 4 contains only Omniwise's own accuracy within error thresholds; there are NO StarCoder2 numbers anywhere. The LLaMA-3.2-3B-over-StarCoder2 choice is asserted in §2.2.3 after unspecified "studies" — less than point estimates. Training: 1 epoch, seed 42 (Table 3). |
 | 4 Eval-set integrity | **P** | "The dataset was split into 90% for training and 10% for validation, with around 4000 kernels reserved for testing" — an explicit, non-single-digit held-out test set, clearly separated from training/validation. |
 | 5 Effect vs noise | **F** | The comparative claim itself is unquantified — "LLaMA 3.2 3B has exceeded StarCoder2 3B in the accuracy of predictions" is asserted with no specific delta number surfaced in the fetched text, and no external (non-LLM) baseline is compared at all. An unquantified "ours is better" claim with no magnitude given cannot be assessed against noise, so conservative scoring treats it as failing rather than UNCLEAR. |
 *Fails 3 of 5 axes (1, 3, 5); notable for having NO external baseline at all — the entire
@@ -413,7 +413,7 @@ search, evaluated as an end-to-end tuning-time/quality comparison.
 |---|---|---|
 | 1 Seeds/variance | **F** | NOT STATED — "The paper reports no standard deviations, confidence intervals, or multiple runs. Single measurements are presented as point estimates across benchmarks." |
 | 2 Param-matched | **F** | NOT STATED — "No model size comparisons or parameter counts provided for any learned components (encoder, transition model, ranking model) versus baselines." |
-| 3 Significance test | **F** | NOT STATED — "No statistical tests, p-values, or significance measures reported." |
+| 3 Significance test | **F** (human-confirmed 2026-10-05) | NOT STATED — "No statistical tests, p-values, or significance measures reported." |
 | 4 Eval-set integrity | **∂** | Training/validation data sizes are given in detail (e.g. "391,240 / 395,761 state-action samples, yielding 312,992 / 316,608 training samples and 78,248 / 79,153 validation samples") but "no test set reported; evaluation uses 22 representative subgraphs from 103 total extracted subgraphs" — an eval set with no clean train/val/test separation described, and a fairly small (22-subgraph) headline evaluation pool with no power caveat. |
 | 5 Effect vs noise | **∂** | Reasonably large, plausible gains against a real prior-SOTA baseline (Ansor) — "1.37× speedup on GPU and 1.54× on CPU under the same 64-trial budget," and "Ansor-64 baseline: '3.91 ms' vs. their method: '3.02 ms'" — but reported "without error bars," so the gap cannot be formally checked against noise. |
 *Fails 3 of 5 axes (1, 2, 3); this is also the only paper this round making its architectural
@@ -430,7 +430,7 @@ explicitly declines to make a rigorous head-to-head claim against prior SOTA (It
 |---|---|---|
 | 1 Seeds/variance | **F** | NOT STATED for the ablation. "Results appear to be single runs without variance reporting." (Figure 3's "standard deviations across microarchitectures" is cross-microarchitecture spread, not seed/run variance — does not count.) |
 | 2 Param-matched | **∂** | The paper runs an explicit **capacity sweep**: "The leftmost portion of Figure 6 explores neural architectures other than the default unidirectional LSTM, including linear regression, multilayer perceptron (MLP), gated recurrent unit (GRU), bidirectional LSTM (biLSTM), and Transformer encoder," plus a depth/width sweep concluding "using more than two layers or higher than 256-dimensional representations brings negligible or no accuracy improvement" — this is genuinely closer to the rubric's P anchor ("a capacity sweep showing the gain is not just scale") than most of the corpus, though exact parameter counts across the different architecture *types* (e.g. Transformer vs LSTM at the same width) are not equalized or reported, so it stops short of a verified match. |
-| 3 Significance test | **F** | NOT STATED — no significance testing for the ablation comparisons. |
+| 3 Significance test | **F** (human-confirmed 2026-10-05) | NOT STATED — no significance testing for the ablation comparisons. |
 | 4 Eval-set integrity | **P** | "roughly 90% of them are dedicated for training, 5% for validation, and 5% for testing" from a "737 million instructions" / "2.0 TB" dataset — clear split, very large corpus, though the exact test-set instance count is not spelled out. |
 | 5 Effect vs noise | **∂** | Ablation conclusions are qualitative rather than numeric in the fetched text ("linear model incurs the largest error," "Transformer has the second largest error, and larger Transformer models fail to converge in training") with no reported variance to check against noise. Notably, on the question of prior-SOTA comparison, the paper is unusually candid: it states outright that "different hardware platforms were used in these papers so this is not a rigorous comparison" when discussing Ithemal/GRANITE — i.e. it explicitly refuses to claim a controlled win over the established baselines, rather than asserting one anyway. |
 *Fails 2 of 5 axes (1, 3); the second-least-bad rigor profile in the corpus alongside A9/A18,
@@ -537,7 +537,16 @@ quotes, and "our-conclusion-affected?".)*
    papers (75% of the corpus) remain AI-prescreened only and have not been independently
    re-checked by a human or a second rater.** State this scope explicitly wherever §D's stats
    are cited in the paper.
-3. **Headline stats (computed 2026-08-25).** n=20. Uses AI-prescreened (rater-1) scores for the
+   **✅ Axis 3 human check on the remaining 15 papers completed 2026-10-05** (the first author, against each
+   paper's PDF, with a check sheet; results in each §A Axis 3 row). Axis 3 is now human-verified
+   for **all 20** papers. One score changed: **A2 TGraph F → ∂** (Table 2 reports ±1-sigma for every
+   cell of the headline; no test). This is the first correction toward a *looser* score; all
+   earlier corrections went stricter. A10 AutoTVM shows unlabeled shaded bands in Figs. 4–5; kept
+   F under the rubric's "when in doubt, weaker category" rule because the bands are never defined
+   (A10's Axis 1 evidence corrected: not "single curves"). Evidence corrected for A17; claim-accuracy
+   notes logged for A12 and A15 (Axis 5 material, scores unchanged). Axes 1, 2, 4, 5 remain
+   AI-prescreened for those 15 papers.
+3. **Headline stats (computed 2026-08-25; recomputed 2026-10-05 after the Axis 3 check).** n=20. Uses AI-prescreened (rater-1) scores for the
    15 papers outside the verification sample, and the corrected scores above for the 5 that were
    human-verified (TenSet Axis 5=F, HLS-GNN Axis 5=F, RLM-for-Code Axis 4=F; all other cells
    unchanged from §A).
@@ -546,20 +555,23 @@ quotes, and "our-conclusion-affected?".)*
    |---|---|---|---|---|---|
    | 1 Seeds/variance | 16 | 4 | 0 | **80%** | 100% |
    | 2 Param-matched | 17 | 3 | 0 | **85%** | 100% |
-   | 3 Significance test | 20 | 0 | 0 | **100%** | 100% |
+   | 3 Significance test | 19 | 1 | 0 | **95%** | 100% |
    | 4 Eval-set integrity | 4 | 7 | 9 | **20%** | 55% |
    | 5 Effect vs noise | 6 | 14 | 0 | **30%** | 100% |
 
-   - **Compound failure:** 18/20 papers (**90%**) fail ≥3 of 5 axes outright. Only two papers
-     fall below that bar: A9 (Kaufman et al., MLSys 2021 — fails only Axis 3) and A20 (PerfVec,
-     SC 2024 — fails Axes 1 and 3 only).
-   - **Claim-level / §6 money quote:** because Axis 3 is F for literally every paper in the
-     corpus, **0/20 papers (0%) have Axes 1–3 all P** — not one of the 20 audited papers'
+   - **Compound failure:** 17/20 papers (**85%**) fail ≥3 of 5 axes outright (was 18/20 = 90%
+     before A2's Axis 3 correction on 2026-10-05). Three papers fall below that bar: A9 (Kaufman
+     et al., MLSys 2021 — fails only Axis 3), A20 (PerfVec, SC 2024 — fails Axes 1 and 3 only) and
+     A2 (TGraph, 2024 — fails Axes 2 and 4 only).
+   - **No paper runs a significance test:** 20/20 (Axis 3 is F for 19 and ∂ for 1; the ∂ reports
+     variance but still no test). Quote this, not "100% fail Axis 3".
+   - **Claim-level / §6 money quote:** because no paper in the corpus runs a significance
+     test (Axis 3 is never P), **0/20 papers (0%) have Axes 1–3 all P** — not one of the 20 audited papers'
      headline architectural comparisons, as reported, would survive a parameter-matched,
      multi-seed, statistically-tested re-run. Draft §6 sentence: *"Across 20 recently published
      learned-cost-model / GNN-for-compilers papers making comparative architectural claims,
      100% report no statistical significance test for their headline comparison, 80–85% report
-     no seed/variance data or capacity-matched baseline, and 90% fail at least 3 of 5 rigor axes
+     no seed/variance data or capacity-matched baseline, and 85% fail at least 3 of 5 rigor axes
      outright — not one of the 20 papers' central architectural claims, as reported, would
      survive a parameter-matched, multi-seed, statistically-tested comparison."*
 4. **Rigorous counter-examples** (for calibration, per the rubric's fairness-control
