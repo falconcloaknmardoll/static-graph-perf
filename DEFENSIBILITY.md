@@ -90,6 +90,16 @@ regenerated where possible.* **Status: NOT STARTED**. It begins once O1's check 
 
 Each entry records a check, what it found, and what changed as a result.
 
+- **2026-10-05 (22:40) — B0 lost 2 seeds to a wandb timeout; completed in queue (j); train.py hardened.**
+  Queue (h) finished seeds 42, 100, 123 at flat lr 3e-5 (best val τ 0.2154, 0.2040, 0.1894). Seed 456
+  crashed inside `wandb.init` (90 s startup timeout, before epoch 1), so the LR check found no epoch-1
+  line and aborted (h); seed 789 never ran. No training data was lost or read selectively: the crash
+  happened before any training. The first author's decision: run seeds 456 and 789 at the head of queue (j), after 6f's
+  grid (queue i), rather than pausing 6f. The formal 6e evaluation therefore waits for ~Oct 8. The P1
+  verdict does not depend on B0 (flat@1e-4 already beats hardware), only its magnitude does. `train.py`
+  change (logging only, training math untouched): `wandb.init` gets a 300 s timeout and falls back to
+  offline mode instead of crashing, so a network blip cannot abort a queued run again. Runs launched
+  from 22:40 on Oct 5 use it.
 - **2026-10-05 — B1 (amended nlp:default sweep) chained after 6f; 6f boundary rule automated.**
   The first author's decision, made before any B1 data exists. Queue (j) waits for queue (i), then applies 6f's
   frozen LR\* + boundary rule via `scripts/lr_star_boundary.py` (dry-run on the finished 6e flat

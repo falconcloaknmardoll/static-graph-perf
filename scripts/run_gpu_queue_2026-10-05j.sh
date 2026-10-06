@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # GPU queue, 2026-10-05 (j): waits for queue (i) (Phase 6f hardware LR grid) to exit, then
 #   1. the 6f boundary step, only if the frozen rule fires (6f §4; applied by scripts/lr_star_boundary.py),
+#   1b. (added 10-05 22:40) the 2 B0 seeds queue (h) lost (6e boundary step, flat lr 3e-5; seed 456 hit a
+#       wandb init timeout, the LR check aborted (h), seed 789 never ran),
 #   2. BACKBURNER B1: the amended nlp:default sweep (6d §10.5, Amendment 2 5144bc1), all 13 runs,
 #      registered cutoff 2026-10-23 23:59 ET (no partial-seed result may be reported).
 # The 6f boundary step goes first so the Level-1 result is not delayed by B1's ~3 days.
@@ -44,6 +46,11 @@ train() {
 
 while pgrep -f run_gpu_queue_2026-10-05i.sh >/dev/null; do sleep 120; done
 log "queue (i) finished"
+
+log "B0 completion: 6e boundary step seeds lost by queue (h)"
+for SEED in 456 789; do
+    train xla/default wide-baseline "${SEED}" 3e-5 "wide-baseline-lr3e-5" checkpoints/flatlr ""
+done
 
 log "6f §4 boundary rule"
 if BOUNDARY_LR=$(python scripts/lr_star_boundary.py \

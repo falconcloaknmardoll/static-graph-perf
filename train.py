@@ -616,7 +616,13 @@ def main() -> None:
     # ── WandB ─────────────────────────────────────────────────────────────────
     use_wandb = _WANDB_AVAILABLE and not args.no_wandb
     if use_wandb:
-        wandb.init(project=args.project, name=args.run_name, config=vars(args))
+        # A wandb startup timeout must not kill a queued run: retry offline (logging only).
+        try:
+            wandb.init(project=args.project, name=args.run_name, config=vars(args),
+                       settings=wandb.Settings(init_timeout=300))
+        except Exception as e:
+            print(f"[WARN] wandb.init failed ({type(e).__name__}); continuing in offline mode")
+            wandb.init(project=args.project, name=args.run_name, config=vars(args), mode="offline")
         wandb.watch(model, log="gradients", log_freq=100)
         print(f"WandB   : project={args.project}")
     elif not args.no_wandb and not _WANDB_AVAILABLE:
