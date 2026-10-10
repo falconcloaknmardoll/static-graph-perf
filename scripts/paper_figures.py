@@ -2,7 +2,7 @@
 
   python scripts/paper_figures.py
 
-Outputs (paper/figures/, paper/tables/): FIG-K1 forest plot, 8c arm table, MDE table,
+Outputs (paper/figures/, paper/tables/): FIG-K1 forest plot, FIG-R4 LR curves (6e + 6f), 8c arm table, MDE table,
 audit axis table (recomputed from the 20 per-paper score tables, then checked against the
 ledger), hyperparameter table. Rerun after any result file changes; never edit outputs by hand.
 """
@@ -176,3 +176,31 @@ fig.subplots_adjust(left=0.06, right=0.99, top=0.80, bottom=0.02, wspace=0.12)
 fig.savefig(f"{FIG}/diag1_mxu_tiling.pdf", metadata={"CreationDate": None}); fig.savefig(f"{FIG}/diag1_mxu_tiling.png", dpi=250)
 plt.close(fig)
 print("figure: diag1_mxu_tiling.pdf/png")
+
+# ── FIG-R4: flat vs hardware val τ across the LR grid, xla:default (6e + 6f, registered §5) ─
+# Mean ± sd over the 5 seeds at every LR, seeds as small dots; dashed line = the shared lr 1e-3.
+e6, f6 = load("experiments/phase6e_results.json"), load("experiments/phase6f_results.json")
+lrs = ["3e-5", "1e-4", "3e-4", "1e-3", "3e-3"]
+assert e6["lr_star"] == f6["lr_star_flat"]
+fig, ax = plt.subplots(figsize=(3.3, 2.0))
+ax.axvline(1e-3, color=MUTED, lw=0.6, ls=(0, (2, 2)))
+ax.text(1.08e-3, 0.005, "shared lr", color=MUTED, fontsize=6.5, ha="left", va="bottom")
+for label, curve, col, mk, dx in (("Flat", e6["flat_curve"], INK, "o", 0.94),
+                                   ("Hardware", f6["hardware_curve"], ACCENT, "s", 1.06)):
+    x = np.array([float(l) for l in lrs])
+    m = np.array([curve[l]["mean"] for l in lrs]); s = np.array([curve[l]["sd"] for l in lrs])
+    for xi, l in zip(x, lrs):
+        ax.scatter([xi * dx] * 5, curve[l]["per_seed"], s=6, facecolors="none", edgecolors=col, lw=0.4, alpha=0.6, zorder=2)
+    ax.errorbar(x * dx, m, yerr=s, color=col, marker=mk, ms=3.5, lw=1.0, capsize=1.5, elinewidth=0.7, label=label, zorder=3)
+ax.set_xscale("log")
+ax.set_xticks([float(l) for l in lrs]); ax.set_xticklabels(lrs)
+ax.minorticks_off()
+ax.set_xlabel("learning rate"); ax.set_ylabel("validation Kendall's τ")
+ax.set_ylim(0, 0.3)
+ax.legend(frameon=False, fontsize=7, loc="upper right")
+for s_ in ("top", "right"):
+    ax.spines[s_].set_visible(False)
+fig.tight_layout(pad=0.3)
+fig.savefig(f"{FIG}/fig_r4_lr_curves.pdf", metadata={"CreationDate": None}); fig.savefig(f"{FIG}/fig_r4_lr_curves.png", dpi=250)
+plt.close(fig)
+print("figure: fig_r4_lr_curves.pdf/png")
