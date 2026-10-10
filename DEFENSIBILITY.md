@@ -90,6 +90,15 @@ regenerated where possible.* **Status: NOT STARTED**. It begins once O1's check 
 
 Each entry records a check, what it found, and what changed as a result.
 
+- **2026-10-10 — Top-K at the tuned LRs DECLARED (committed before any number is computed).**
+  Exploratory, like O9; it never replaces 6f's Q1 (τ) verdict. Why: O9's xla:default Top-K
+  numbers compare against flat@1e-3, which 6e showed is LR-handicapped. Fixed now: arms =
+  flat@1e-4 (`checkpoints/flatlr/…lr1e-4`) and hardware@1e-4 (`checkpoints/hwlr/…lr1e-4`), each
+  arm's LR\* from 6e/6f; hierarchical is excluded (never tuned). Same metric, K ∈ {1, 5, 10, 100},
+  eval batch 8, 5 paired seeds, paired two-sided t, no correction (exploratory, as O9).
+  `python scripts/topk_slowdown.py --coll xla_default_tuned` → `experiments/topk_slowdown_xla_default_tuned.{md,json}`.
+  Caveat to report with it: LR\* was chosen on τ over the same validation graphs. Reported
+  whichever way it falls; O9's lr-1e-3 numbers are then scoped to "at a shared lr of 1e-3".
 - **2026-10-09 — Phase 6f formal evaluation: §7 row 3, no difference detected under symmetric tuning (n = 5), within a 50-epoch budget.**
   `scripts/phase6f_evaluate.py`, `experiments/phase6f_results.{md,json}`. Hardware LR curve:
   3e-5 0.2024, **1e-4 0.2271 (LR\*\_hw, after the boundary step)**, 3e-4 0.1898, 1e-3 0.1977,

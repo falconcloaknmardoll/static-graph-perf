@@ -6,6 +6,7 @@ for that K. Same definition as phase4_evaluate_topk.py. Scored at eval_batch 8 (
 protocol) with the verified eval_fast loader. Inference only.
 
   python scripts/topk_slowdown.py --coll xla_default
+  python scripts/topk_slowdown.py --coll xla_default_tuned   # flat and hardware at their 6e/6f LR* (1e-4)
 """
 import argparse, json, os, sys
 import numpy as np, scipy.stats as st, torch
@@ -17,7 +18,7 @@ from model_phase2 import HierarchicalGraphSAGE
 from model_phase3 import HardwareAwareDiffPool
 
 ap = argparse.ArgumentParser()
-ap.add_argument("--coll", required=True, choices=["xla_default", "xla_random", "nlp_random"])
+ap.add_argument("--coll", required=True, choices=["xla_default", "xla_default_tuned", "xla_random", "nlp_random"])
 ap.add_argument("--eval-batch", type=int, default=8)
 ap.add_argument("--out", default="experiments/topk_slowdown")
 a = ap.parse_args()
@@ -33,10 +34,13 @@ if a.coll == "xla_random":
     DIRS = {"wide-baseline": "checkpoints/ablation/wide-baseline",
             "hierarchical":  "checkpoints/ablation/diffpool",
             "hardware":      "checkpoints/phase3/hardware"}
+elif a.coll == "xla_default_tuned":   # declared 2026-10-10; hierarchical was never LR-tuned
+    DIRS = {"wide-baseline": "checkpoints/flatlr/xla_default/wide-baseline-lr1e-4",
+            "hardware":      "checkpoints/hwlr/xla_default/hardware-lr1e-4"}
 else:
     DIRS = {m: f"checkpoints/expansion/{a.coll}/{m}" for m in MAKERS}
 ckpt = lambda arm, s: f"{DIRS[arm]}-seed{s}/best_model.pt"
-arms = [m for m in MAKERS if all(os.path.exists(ckpt(m, s)) for s in SEEDS)]
+arms = [m for m in MAKERS if m in DIRS and all(os.path.exists(ckpt(m, s)) for s in SEEDS)]
 
 
 def slowdowns(pred, runtime):
