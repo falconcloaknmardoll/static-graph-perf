@@ -92,10 +92,14 @@ Each entry records a check, what it found, and what changed as a result.
 
 - **2026-10-10 — Finding 1 framing DECIDED: option A ("structure vs information").** the first author chose
   A over B (trainability observation, post hoc, n = 2) and C (demote L1). L1 now reads: added
-  architectural structure (hierarchy, contention edges) gives no detectable gain over a matched,
-  tuned flat model (xla:default +0.002, p = .88, MDE 0.037); the apparent +0.165 at a shared lr of
+  architectural structure (hierarchy, contention edges) beats a matched flat model on none of the
+  three collections with results; only xla:default is LR-tuned on both arms (+0.002, p = .88,
+  MDE 0.037), xla:random / nlp:random are at one shared LR (nlp:random hw marginally worse, p = .0504); the apparent +0.165 at a shared lr of
   1e-3 was a flat-model LR handicap caught by the pre-registered 6e check, reported first as a
-  failure and then as a worked instance of audit Axis 5. Guardrails: "no detectable gain (MDE …)",
+  failure and then as a worked instance of audit Axis 5's BASELINE clause (rubric name: "Effect
+  Size vs Noise & Baseline Strength"; passes the noise half, fails the baseline half). Do not
+  claim the audit shows practice "cannot tell structure from information" (it doesn't measure that;
+  external-review catch, 2026-10-10). Guardrails: "no detectable gain (MDE …)",
   never "structure doesn't help"; xla:random / nlp:random were compared at one shared LR only.
   §5: ¶7 (6b decomposition, O9 Top-K) and ¶9 (inception_v3) → appendix scoped to lr 1e-3; ¶8 (O11
   "why hierarchy helps") cut. L2 not exposed (8c trained on xla:random, flat@1e-3 τ 0.288). Pending:
