@@ -90,6 +90,18 @@ regenerated where possible.* **Status: NOT STARTED**. It begins once O1's check 
 
 Each entry records a check, what it found, and what changed as a result.
 
+- **2026-10-10 — Finding 1 framing DECIDED: option A ("structure vs information").** the first author chose
+  A over B (trainability observation, post hoc, n = 2) and C (demote L1). L1 now reads: added
+  architectural structure (hierarchy, contention edges) gives no detectable gain over a matched,
+  tuned flat model (xla:default +0.002, p = .88, MDE 0.037); the apparent +0.165 at a shared lr of
+  1e-3 was a flat-model LR handicap caught by the pre-registered 6e check, reported first as a
+  failure and then as a worked instance of audit Axis 5. Guardrails: "no detectable gain (MDE …)",
+  never "structure doesn't help"; xla:random / nlp:random were compared at one shared LR only.
+  §5: ¶7 (6b decomposition, O9 Top-K) and ¶9 (inception_v3) → appendix scoped to lr 1e-3; ¶8 (O11
+  "why hierarchy helps") cut. L2 not exposed (8c trained on xla:random, flat@1e-3 τ 0.288). Pending:
+  B1 nlp:default (6d §10.5, Oct 11) may add one labelled exploratory exception; Top-K at the tuned
+  LRs (declared 6def25d) not yet computed. Desk claim lines + paper_outline updated; the first author rewrites
+  the intro / abstract / §10 prose.
 - **2026-10-10 — Kaggle test-set scoring: feasibility check only (nothing submitted).**
   Local test npz files carry `config_runtime` = all zeros (checked all 4 layout collections; 1000
   configs per graph; xla:default and xla:random have 8 test graphs, nlp 17 each), so test labels
