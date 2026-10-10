@@ -90,6 +90,18 @@ regenerated where possible.* **Status: NOT STARTED**. It begins once O1's check 
 
 Each entry records a check, what it found, and what changed as a result.
 
+- **2026-10-10 — Kaggle test-set scoring: feasibility check only (nothing submitted).**
+  Local test npz files carry `config_runtime` = all zeros (checked all 4 layout collections; 1000
+  configs per graph; xla:default and xla:random have 8 test graphs, nlp 17 each), so test labels
+  exist only on Kaggle. The competition (`predict-ai-model-runtime`) closed 2023-11-17; the first author's
+  account is registered for it with no submissions. One submission file covers all 5 parts
+  (tile + 4 layout collections) and returns a single public/private score. Isolating one
+  collection would need differencing between submissions that hold the other parts fixed (e.g.
+  10 submissions = 5 seeds × flat/hardware for xla:default). **Not verified** (pages are
+  JavaScript-rendered, so neither could be read): whether late submissions are still scored, and
+  how exactly the 5 parts combine into the score. Before any use: the first author checks late-submission
+  availability on the competition page; any submission is made under his account with his
+  explicit OK; the analysis is declared and committed before the first score is read.
 - **2026-10-10 — Top-K at the tuned LRs DECLARED (committed before any number is computed).**
   Exploratory, like O9; it never replaces 6f's Q1 (τ) verdict. Why: O9's xla:default Top-K
   numbers compare against flat@1e-3, which 6e showed is LR-handicapped. Fixed now: arms =
