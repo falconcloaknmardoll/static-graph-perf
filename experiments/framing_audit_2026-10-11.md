@@ -330,3 +330,9 @@ text-only.
    (`checkpoints/phase5_mispred.json`) turned out to already hold flat vs hardware CONV Top-1 on
    xla:random (5-seed means): inception_v3 1.4433 vs 1.4389, resnet50 1.511 vs 1.5126, resnet_v1_50
    1.4227 vs 1.4803. Disclosed in `experiments/r0_conv_top1_structure_declaration.md`.
+
+5. **Status after the audit (same day):** 8e frozen and queued (queue k); R0 frozen and computing;
+   R4 redesigned to hold out **whole architecture families** (sibling graphs differ only by
+   batch/shard/precision, so single-graph hold-outs would leak), declared in
+   `r4_heldout_conv_declaration.md` and queued behind 8e (queue l). New: O19 (8c/8d Top-1 scored at
+   eval batch 32, never stated) and O20 (3-graph subset; leave-one-graph-out added).
