@@ -400,7 +400,7 @@ prior work (Vitis HLS estimates, IronMan) for FPGA high-level-synthesis performa
 | 3 Significance test | **F** | NOT STATED — "No significance tests, p-values, or statistical comparisons provided." |
 | 4 Eval-set integrity | **P** | "DFG and CDFG datasets are randomly split into 80% train, 10% validation and 10% test," over a synthetic corpus of "19,120 and 18,570 C programs" respectively, plus named real-world benchmark suites ("MachSuite 16, CHStone 10, PolyBench 30" = 56 real applications). Clear, adequately-sized held-out split. |
 | 5 Effect vs noise | **∂** → **F** (human verification, §D) | Large claimed gains — "outperforms HLS by up to 40× on resource prediction" and "excels existing predictor IronMan by 2× to 5×" — against baselines that are legitimate prior tools/work (not obvious strawmen), but with no variance/significance reporting for either the internal 14-GNN comparison or the external Vitis HLS/IronMan comparison, conservative scoring keeps this at partial. |
-*Fails 2 of 5 axes (2, 3) — tied with A9 for the least-bad rigor profile in the corpus so far,
+*[Corrected 2026-10-11: after the §D human check moved Axis 5 ∂ → F, A18 fails **3** of 5 (2, 3, 5); §D's totals already count it this way, so 17/20 is unchanged. The text below predates that correction.] Originally: fails 2 of 5 axes (2, 3) — tied with A9 for the least-bad rigor profile in the corpus so far,
 largely on the strength of a genuine multi-seed (if not fully dispersion-reported) protocol and
 a clean, sizeable held-out split.*
 
