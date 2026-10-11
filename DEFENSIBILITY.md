@@ -93,6 +93,14 @@ regenerated where possible.* **Status: NOT STARTED** (O1's check landed 2026-09-
 
 Each entry records a check, what it found, and what changed as a result.
 
+- **2026-10-11 — Top-K at the tuned LRs: result (declared 6def25d, exploratory).**
+  `experiments/topk_slowdown_xla_default_tuned.{md,json}` were computed on Oct 10 at 16:45 by the
+  declared command and left uncommitted. Re-run on Oct 11 into scratch: **identical** (max abs diff
+  0.0). Flat@1e-4 vs hardware@1e-4 on xla:default, slowdown@1: 1.0176 ± 0.0091 vs 1.0042 ± 0.0040,
+  Δ −0.0134 (p = .079); @5 −0.0055 (p = .176); @10 −0.0008 (p = .203); @100 −0.0002 (p = .429).
+  **No significant Top-K difference at the tuned LRs.** O9's lr-1e-3 Top-K win (1.152 → 1.009,
+  p ≤ 1e-4) is scoped to "at a shared lr of 1e-3", consistent with 6f's τ result. Caveat as
+  declared: LR* was chosen on τ over the same validation graphs.
 - **2026-10-11 — 8e frozen + launched; R0 frozen + computing; R4 declared + queued; O19, O20 opened.**
   8e frozen (44267c7, the first author sign-off), queue k (b13fcee). Amendment 1 to 8e and R0 (5defe35), made
   before any data: CONV Top-1 at eval batch 32 as 8c (O19: 8c/8d's batch was never stated), with
