@@ -41,9 +41,8 @@ trained on and that are absent from 8c's test set**?
 ## 3. Design
 
 - **Arms:** `baseline` and `channel`, exactly 8c's pipeline (`train_8c.py`, `dataset_mxu.py`).
-- **Recipe:** 8c's registered recipe, **lr 1e-3**, 50 epochs, capped harness, GPU, seeds
-  {42, 100, 123, 456, 789}, arms interleaved within seed. R4 tests generalisation of 8c *as
-  registered*. It inherits O18 (untuned LR); 8e answers that separately.
+- **Recipe:** 8c's registered recipe (**LR changed by Amendment 1: each arm's 8e LR\***), 50 epochs, capped harness, GPU, seeds
+  {42, 100, 123, 456, 789}, arms interleaved within seed. (Amendment 1 replaced the original "lr 1e-3, as registered in 8c", which would have inherited O18.)
 - **Training data:** `layout/xla/random_r4/train` = symlinks to the 58 kept graphs.
   `layout/xla/random_r4/valid` = symlinks to the unchanged xla:random validation graphs, so
   checkpoint selection (overall val τ, batch 8) is exactly as in 8c. Built by `scripts/make_r4_split.py`.
@@ -72,3 +71,15 @@ otherwise R4 is not reported. No partial result, and no seeds added.
 
 10 runs × ≈ 3 h ≈ 30 GPU-h. Queue `scripts/run_gpu_queue_2026-10-11l.sh` waits for 8e's grid
 (queue k), runs any 8e boundary step first (8e takes priority), then R4.
+
+## Amendment 1 — 2026-10-11, before any R4 run exists (external review)
+
+- **LR.** §3 trained both arms at lr 1e-3, the untuned LR that O18 is about. If 8e finds an arm's
+  best LR is not 1e-3, a lr-1e-3 R4 would inherit exactly the objection 8e answers. **Changed:
+  each arm trains at its final 8e LR\*** (8e §4 rule, after any boundary step), computed
+  mechanically by `scripts/phase8e_lr_star.py --print-lr-star` from 8e's selection metric (overall
+  val τ), never from any R4 or CONV Top-1 number. If both LR\* are 1e-3, nothing else changes. If
+  either LR\* cannot be determined (8e grid incomplete), **R4 does not run.**
+- Consequence: R4 now tests generalisation of the *tuned* contrast (8e Q1's arms), so it is read
+  alongside 8e Q1, not 8c's lr-1e-3 contrast. The §4 table is unchanged.
+- No other change. Checkpoints go to `checkpoints/r4/xla_random_r4/mxu-<arm>-lr<LR*>-seed<s>`.

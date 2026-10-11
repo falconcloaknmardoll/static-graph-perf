@@ -3,6 +3,7 @@
 LR*_arm = the LR in {1e-4, 3e-4, 1e-3} (plus any boundary LR already run) with the highest mean best
 val tau (overall, xla/random/valid) over the 5 seeds; an exact tie goes to 1e-3. lr 1e-3 = the 8c run.
 Prints the boundary LR to run (3e-5 if LR* = 1e-4, 3e-3 if LR* = 1e-3), or nothing.
+With --print-lr-star, prints LR*_arm itself (used by R4, Amendment 1).
 Exits 1 if any required log is missing or unfinished.
   python scripts/phase8e_lr_star.py --arm baseline
 """
@@ -36,6 +37,7 @@ def best_tau(path):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--arm", required=True, choices=["baseline", "channel"])
+    ap.add_argument("--print-lr-star", action="store_true")
     a = ap.parse_args()
     grid = GRID + [b for b in BOUNDARY.values() if os.path.exists(log_path(a.arm, b, SEEDS[0]))]
     means = {lr: mean(best_tau(log_path(a.arm, lr, s)) for s in SEEDS) for lr in grid}
@@ -44,6 +46,9 @@ if __name__ == "__main__":
     lr_star = "1e-3" if "1e-3" in tied else tied[0]
     print(f"{a.arm}: " + ", ".join(f"{lr}={m:.4f}" for lr, m in means.items()) + f" -> LR*={lr_star}",
           file=sys.stderr)
+    if a.print_lr_star:
+        print(lr_star)
+        sys.exit(0)
     b = BOUNDARY.get(lr_star)
     if b and b not in grid:
         print(b)

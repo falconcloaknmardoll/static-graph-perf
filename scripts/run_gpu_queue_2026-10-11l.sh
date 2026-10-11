@@ -2,8 +2,9 @@
 # GPU queue, 2026-10-11 (l): runs after queue k (8e grid).
 #   1. 8e boundary step(s), if 8e §4's frozen LR* rule triggers them (scripts/phase8e_lr_star.py).
 #      8e has priority over everything below.
-#   2. R4 (experiments/r4_heldout_conv_declaration.md): baseline + channel, lr 1e-3, 5 seeds,
-#      trained on xla/random_r4 (11 conv graphs from 6 families held out).
+#   2. R4 (experiments/r4_heldout_conv_declaration.md + Amendment 1): baseline + channel, each at
+#      its final 8e LR* (after any boundary step), 5 seeds, trained on xla/random_r4 (11 conv
+#      graphs from 6 families held out). If either LR* cannot be determined, R4 does not run.
 # No run is STARTED after 2026-10-23 23:59 ET (both 8e and R4 are unreportable after that).
 #
 # PAUSE SWITCH: `touch PAUSE_GPU_QUEUE` in the repo root; `rm PAUSE_GPU_QUEUE` resumes.
@@ -63,11 +64,18 @@ for ARM in baseline channel; do
     fi
 done
 
-log "R4: held-out conv families (lr 1e-3)"
+declare -A LRSTAR
+for ARM in baseline channel; do
+    if ! LRSTAR[${ARM}]=$(python scripts/phase8e_lr_star.py --arm "${ARM}" --print-lr-star); then
+        log "R4 NOT RUN: 8e LR* for ${ARM} undetermined (R4 Amendment 1)"; exit 0
+    fi
+done
+log "R4: held-out conv families at 8e LR* (baseline ${LRSTAR[baseline]}, channel ${LRSTAR[channel]})"
 python scripts/make_r4_split.py
 for SEED in 42 100 123 456 789; do
     for ARM in baseline channel; do
-        train8c xla/random_r4 "${SEED}" 1e-3 "${ARM}" "mxu-${ARM}" checkpoints/r4
+        L=${LRSTAR[${ARM}]}
+        train8c xla/random_r4 "${SEED}" "${L}" "${ARM}" "mxu-${ARM}-lr${L}" checkpoints/r4
     done
 done
 
