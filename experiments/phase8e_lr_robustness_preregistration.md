@@ -1,6 +1,6 @@
 # Phase 8e — Pre-registration: is the 8c channel effect robust to LR tuning?
 
-> **Status: DRAFT, 2026-10-11. NOT FROZEN. No 8e run exists.** Drafted by Claude from
+> **Status: FROZEN 2026-10-11 (the first author sign-off, this date). No 8e run existed at freeze.** Drafted by Claude from
 > `experiments/framing_audit_2026-10-11.md` (Task 1, R1). Freeze = the first author's sign-off (the second author review
 > recommended), recorded at the bottom, then commit, then launch. Any later change is a dated
 > amendment, added before the relevant data is read (6d §8.6 convention).
@@ -153,5 +153,5 @@ freeze, modelled on `scripts/run_gpu_queue_2026-10-05i.sh` (LR check + pause swi
 
 ## Freeze
 
-- [ ] the first author sign-off (date): ______
-- [ ] the second author reviewed (optional, date): ______
+- [x] the first author sign-off (date): 2026-10-11 (given in session; recorded by Claude)
+- [ ] the second author reviewed (optional): not before freeze; the first author chose to freeze and launch to protect the Oct 23 cutoff

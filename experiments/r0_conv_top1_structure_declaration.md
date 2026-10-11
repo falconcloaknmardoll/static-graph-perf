@@ -1,6 +1,6 @@
 # R0 — CONV-subset Top-1 of the structured arms on xla:random (exploratory declaration)
 
-> **Status: DRAFT, 2026-10-11. Not yet frozen; nothing computed.** Freeze = the first author's sign-off,
+> **Status: FROZEN 2026-10-11 (the first author sign-off, this date); nothing computed at freeze.** Freeze = the first author's sign-off,
 > recorded as a dated line at the bottom, then commit, then compute. Exploratory and eval-only, so
 > no pre-registration is needed. It is declared before computing, following the `6def25d`
 > precedent (Top-K at tuned LRs). Origin: `experiments/framing_audit_2026-10-11.md` §3a / §4.
@@ -63,4 +63,4 @@ hierarchical/hardware model classes is needed (`phase8c_evaluate.py` loads only
 
 ## Freeze
 
-- [ ] the first author sign-off (date): ______
+- [x] the first author sign-off (date): 2026-10-11 (given in session; recorded by Claude)
