@@ -155,3 +155,14 @@ freeze, modelled on `scripts/run_gpu_queue_2026-10-05i.sh` (LR check + pause swi
 
 - [x] the first author sign-off (date): 2026-10-11 (given in session; recorded by Claude)
 - [ ] the second author reviewed (optional): not before freeze; the first author chose to freeze and launch to protect the Oct 23 cutoff
+
+## Amendment 1 — 2026-10-11, before any 8e run has started
+
+- **Eval batch for the primary metric.** §4 lists "eval batch 8" (the training-time validation
+  used for checkpoint selection, unchanged). §5 says CONV Top-1 uses "the same evaluator as 8c". That
+  evaluator scored 8c at its default batch of **32** (`phase8c_evaluate.py:82,166`). This is now
+  explicit: **Q1/Q2 CONV Top-1 are scored at batch 32**, matching the reused lr-1e-3 8c numbers, and a
+  batch-8 re-score is reported beside them as a sensitivity check (O1/O19). Checkpoint selection still
+  uses training-time val τ at batch 8.
+- Written after freeze (44267c7) and before any 8e checkpoint exists (the queue was waiting on
+  the GPU). No other change.

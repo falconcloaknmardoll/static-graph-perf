@@ -64,3 +64,12 @@ hierarchical/hardware model classes is needed (`phase8c_evaluate.py` loads only
 ## Freeze
 
 - [x] the first author sign-off (date): 2026-10-11 (given in session; recorded by Claude)
+
+## Amendment 1 — 2026-10-11, before anything is computed
+
+- **Eval batch.** §3 said "eval batch 8" and also "exactly as 8c" / "as in `phase8c_evaluate.py`".
+  Those conflict: 8c's CONV Top-1 was scored with `phase8c_evaluate.py` at its default batch of
+  **32** (`phase8c_evaluate.py:82,166`; no `--batch-size` was passed). Eval-mode BatchNorm uses batch
+  statistics (O1), so the batch can move results. Because R0 exists to match 8c's metric, the
+  **primary R0 numbers use batch 32**, and batch 8 is reported beside them as a sensitivity check.
+- Found while writing the evaluator, before any R0 number existed. No other change.
