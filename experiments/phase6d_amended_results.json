@@ -1,0 +1,202 @@
+{
+ "label": "AMENDED / exploratory (6d §10.5). Never replaces §10.4.",
+ "completion_all_13_done_before_cutoff": true,
+ "arms": {
+  "hardware@1e-4": {
+   "per_seed": [
+    0.417,
+    0.4169,
+    0.3884,
+    0.4127,
+    0.4085
+   ],
+   "mean": 0.4086823509708054,
+   "sd": 0.011885636534216773,
+   "best_epoch": [
+    45,
+    45,
+    40,
+    50,
+    50
+   ],
+   "lr_in_ckpt": [
+    0.0001,
+    0.0001,
+    0.0001,
+    0.0001,
+    0.0001
+   ],
+   "fast_eval_in_ckpt": [
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "nan_tau": [
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "flat@1e-4": {
+   "per_seed": [
+    0.4124,
+    0.4081,
+    0.4208,
+    0.4201,
+    0.4074
+   ],
+   "mean": 0.41375912238760904,
+   "sd": 0.006379853628021886,
+   "best_epoch": [
+    40,
+    50,
+    50,
+    35,
+    50
+   ],
+   "lr_in_ckpt": [
+    0.0001,
+    0.0001,
+    0.0001,
+    0.0001,
+    0.0001
+   ],
+   "fast_eval_in_ckpt": [
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "nan_tau": [
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "flat@1e-3": {
+   "per_seed": [
+    0.2543,
+    0.3451,
+    0.3291,
+    0.3824,
+    0.2853
+   ],
+   "mean": 0.31923911992655035,
+   "sd": 0.05029246392568107,
+   "best_epoch": [
+    50,
+    50,
+    50,
+    50,
+    50
+   ],
+   "lr_in_ckpt": [
+    0.001,
+    0.001,
+    0.001,
+    0.001,
+    0.001
+   ],
+   "fast_eval_in_ckpt": [
+    null,
+    null,
+    true,
+    true,
+    true
+   ],
+   "nan_tau": [
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  }
+ },
+ "A_P1_hardware1e-4_minus_flat1e-4": {
+  "per_seed_delta": [
+   0.0046,
+   0.0087,
+   -0.0324,
+   -0.0074,
+   0.0011
+  ],
+  "mean_delta": -0.005076771416803594,
+  "sd_delta": 0.016405017750448895,
+  "t": -0.6919837678255562,
+  "p": 0.5270178845928547,
+  "wilcoxon_W": 7.0,
+  "wilcoxon_p": 1.0,
+  "bootstrap95": [
+   -0.01918878815634617,
+   0.0055544574141463635
+  ],
+  "cohens_dz": -0.3094645488368751,
+  "realized_mde": 0.02727295075089428,
+  "s7_row": "Δτ < 0 (any p)"
+ },
+ "confound_check_hardware1e-4_minus_flat1e-3": {
+  "per_seed_delta": [
+   0.1627,
+   0.0718,
+   0.0592,
+   0.0303,
+   0.1232
+  ],
+  "mean_delta": 0.0894432310442551,
+  "sd_delta": 0.05297591456798297,
+  "t": 3.7753221699554853,
+  "p": 0.01951448647376099,
+  "wilcoxon_W": 0.0,
+  "wilcoxon_p": 0.0625,
+  "bootstrap95": [
+   0.050173238338556456,
+   0.1340982516476045
+  ],
+  "cohens_dz": 1.688375401796496,
+  "realized_mde": 0.08807119449515059
+ },
+ "verdict": "A-P1 FAILS and A-P2 FAILS (amended): sign patterns with nlp:random",
+ "A_P2_sign_pattern": {
+  "nlp_default_amended": "-",
+  "xla_default_registered_lr1e-3": "+",
+  "nlp_random_lr1e-3": "-"
+ },
+ "collapse_check_val_n_graphs": {
+  "hardware@1e-4": [
+   20,
+   20,
+   20,
+   20,
+   20
+  ],
+  "flat@1e-4": [
+   20,
+   20,
+   20,
+   20,
+   20
+  ],
+  "flat@1e-3": [
+   20,
+   20,
+   20,
+   20,
+   20
+  ]
+ },
+ "seeds": [
+  42,
+  100,
+  123,
+  456,
+  789
+ ]
+}
