@@ -73,3 +73,13 @@ hierarchical/hardware model classes is needed (`phase8c_evaluate.py` loads only
   statistics (O1), so the batch can move results. Because R0 exists to match 8c's metric, the
   **primary R0 numbers use batch 32**, and batch 8 is reported beside them as a sensitivity check.
 - Found while writing the evaluator, before any R0 number existed. No other change.
+
+## Amendment 2 — 2026-10-11, operational (device), before any hardware-arm or batch-8 number exists
+
+- The GPU run computed and cached flat and hierarchical at batch 32 (`checkpoints/r0_eval_cache/`;
+  not yet read), then ran out of memory on the hardware arm at batch 32 because 8e training shares
+  the GPU. The remaining cells (hardware at batch 32, every arm at batch 8) run on **CPU**.
+- Inference only, same checkpoints and code. CPU-vs-GPU prediction differences are expected at the
+  ~1e-5 level (the scale `verify_eval_fast.py` measured for GPU run-to-run noise), which can change
+  a Top-1 pick only on near-ties. Disclosed. If the GPU frees up before R0 is written into the paper,
+  hardware at batch 32 is re-scored on GPU as a check.
