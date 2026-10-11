@@ -69,8 +69,9 @@ Implied satisfiability window for oracle CONV slowdown (must be ≤1.05 AND ≥M
 
 - `power_analysis.py` and the P5 registration were created in the **same commit** (`0c4844a`,
   2026-08-19). The tool that shows P5 was unreachable existed when P5 was written.
-- Phase 7 audit baseline for comparison: 20/20 surveyed papers report no seed variance at all
-  (`phase7_meta_analysis.md` §D).
+- Phase 7 audit baseline for comparison: no audited paper passes Axis 1 (seeds/variance): 16/20 F,
+  4/20 ∂ (`phase7_meta_analysis.md:565`). [Corrected 2026-10-11; this line previously said "20/20
+  report no seed variance at all", which predates the human-verified counts.]
 - Directional claim this supports: the underpowering trap is **structural**, not a competence
   gap — it survived authors who had built the detection tool and pre-registered in advance.
 

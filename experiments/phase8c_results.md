@@ -101,3 +101,9 @@ mechanism (item 3) is an indirect prior effect, not direct config-discriminating
 oracle probe is no longer a required fallback (its scramble-control first arm already ran as part of
 this confound-A resolution) — it's now an optional capstone if there's time, not load-bearing.
 See `experiments/novelty_venue_draft.md` for how this folds into the paper's final framing.
+
+**Note (2026-10-11, framing audit):** the 2026-08-19 wording above ("close the convolution ranking
+gap", "confirmed co-design result") predates the LR question. The 8c baseline was not LR-tuned
+(same flat model and lr 1e-3 as 6e's handicapped arm), so whether part of the effect is a
+baseline-LR artifact is undetermined. Tested by 8e (`phase8e_lr_robustness_preregistration.md`,
+draft). Use "narrows", never "closes". Registered BH-p for channel is .0032 (line 12).

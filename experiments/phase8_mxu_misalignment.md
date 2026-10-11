@@ -66,3 +66,16 @@ conv op in the 4 conv-bearing val graphs, overlaid with Phase-5 model failure.
   the layout/tiling *search dynamics*, which no static shape-derived feature captures.
 - Paper use: architect-coded headline visual for §7–8; also pre-registers our skepticism
   (P1/P2 in `phase8c_preregistration.md`) with visual evidence.
+
+---
+
+## Erratum (2026-10-11, framing audit) — T3 counts and ρ
+
+The T3 glob (`scripts/analyze_mxu_misalignment.py:160`, `xla/*/*/*.npz`) also picks up the 16
+`test/` graphs, whose `config_runtime` is all zeros, so their runtime CV is NaN. They are dropped
+from the medians but counted in the printed n. Correct counts: **conv-bearing n = 95, conv-free
+n = 49, total with runtimes 144.** Medians 0.239 / 0.086 are unchanged (2.77×; Mann-Whitney
+p = 1.5e-7, a test this report did not originally run). The script's `spearman()` ranks with argsort
+and does not average ties (mxu_frac has 49 tied zeros); the tie-corrected ρ is **+0.52**
+(p = 2.5e-11), not +0.54. The overhead ρ = −0.06 (n = 95) holds (scipy −0.065, p = .53). The
+output above is left as generated. See `framing_audit_2026-10-11.md`.
