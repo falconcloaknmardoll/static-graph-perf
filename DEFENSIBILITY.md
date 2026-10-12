@@ -93,6 +93,15 @@ regenerated where possible.* **Status: NOT STARTED** (O1's check landed 2026-09-
 
 Each entry records a check, what it found, and what changed as a result.
 
+- **2026-10-12 — O15: scoring sheet ready; the first author scores Oct 19–22.**
+  - **Working sheet:** Claude Doc "Axis 3 scoring sheet — Frame B (10 papers)"
+    (https://claude.ai/code/artifact/66007727-813a-47d6-9fb1-10a96b0dd6e2). It has one table per
+    paper with Qualifies and Score dropdowns, plus a summary table. Its version history stands in
+    for git timestamps while scoring.
+  - **Repo copy:** `experiments/axis3_recent_coverage_scores.md` was committed blank (1b2e337).
+    Final results are copied there and committed by Oct 23.
+  - **Done before scoring:** all 10 PDFs obtained. Claude has not read, pre-screened or
+    pre-filled any of the 10 papers.
 - **2026-10-12 — O15: Axis 3 recent-work declaration FROZEN (e12c51a).**
   `experiments/axis3_recent_coverage_declaration.md`, approved by the first author. Frozen before any of the
   10 Frame B papers was opened; all 10 PDFs were downloaded unopened beforehand, and all were
