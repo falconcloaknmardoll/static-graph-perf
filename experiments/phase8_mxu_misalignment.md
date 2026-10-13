@@ -79,3 +79,15 @@ p = 1.5e-7, a test this report did not originally run). The script's `spearman()
 and does not average ties (mxu_frac has 49 tied zeros); the tie-corrected ρ is **+0.52**
 (p = 2.5e-11), not +0.54. The overhead ρ = −0.06 (n = 95) holds (scipy −0.065, p = .53). The
 output above is left as generated. See `framing_audit_2026-10-11.md`.
+
+## Erratum (2026-10-13) — "all convs are compute-bound" and the n = 7 ρ
+
+The roofline addendum's "All convs are compute-bound (AI ≈ 90–2,900)" is wrong per op. Recomputed with
+`scripts/plot_roofline.py`'s loader: below-ridge (AI < 137) conv ops are UNet-3D 6/53 (0.8% of MACs),
+Inception-v3 53/293 (5.4%), ResNet-v1-50 41/158 (15.7%), ResNet-50 41/158 (15.7%); per-op AI spans
+3.8–11,810. Correct claim: conv work is **predominantly** compute-bound (74–89% of ops, 84–99% of MACs);
+MAC-weighted AI 688 / 696 / 732 / 2,857. The figure itself was always right.
+
+T1's mxu_frac vs slowdown ρ = +0.79 has the same no-tie-averaging bug as T3 (3 tied zeros among 7
+graphs): scipy gives **ρ = +0.74, p = .057**. The runtime-CV ρ = +0.96 likely has the same problem, but it
+can't be recomputed from the 2-decimal table above; rerun before citing it.
