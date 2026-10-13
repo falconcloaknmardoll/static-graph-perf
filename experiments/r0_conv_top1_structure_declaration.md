@@ -93,3 +93,11 @@ hierarchical/hardware model classes is needed (`phase8c_evaluate.py` loads only
   while checking the process.
 - **All remaining cells now run on GPU** after queues k, l and m finish (~Oct 14), so every R0
   number comes from GPU inference. Amendment 2's CPU plan is withdrawn.
+
+## Operational note — 2026-10-13
+- Amendment 3's GPU run is queued as `scripts/run_gpu_queue_2026-10-13n.sh` (waits for queues k, l, m and
+  for any training process to exit; log `logs/r0_conv_top1_eval_gpu.log`).
+- Incident, disclosed: at ~15:30 ET on Oct 13, `r0_conv_top1_eval.py --help` was run by mistake (the script
+  takes no arguments and runs in full). It loaded the cached flat/hierarchical b32 cells without printing
+  them, started the hardware arm on the shared GPU, and crashed before printing any per-graph value or
+  writing a cache or results file (cache timestamps unchanged since Oct 11). No R0 number was seen.
