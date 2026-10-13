@@ -83,3 +83,13 @@ hierarchical/hardware model classes is needed (`phase8c_evaluate.py` loads only
   ~1e-5 level (the scale `verify_eval_fast.py` measured for GPU run-to-run noise), which can change
   a Top-1 pick only on near-ties. Disclosed. If the GPU frees up before R0 is written into the paper,
   hardware at batch 32 is re-scored on GPU as a check.
+
+## Amendment 3 — 2026-10-12, operational
+
+- The CPU run (Amendment 2) was stopped after 41 h: it had completed only part of one hardware cell
+  and was holding 9 GB on a memory-starved machine while 8e trained. Its partial output was **not
+  cached and is discarded.** Disclosed: its log showed per-graph hardware-arm Top-1 values (batch 32,
+  xla:default) for 4 graphs (inception_v3, mlperf_bert, resnet50.4x4, resnet_v1_50), seen 2026-10-12
+  while checking the process.
+- **All remaining cells now run on GPU** after queues k, l and m finish (~Oct 14), so every R0
+  number comes from GPU inference. Amendment 2's CPU plan is withdrawn.
