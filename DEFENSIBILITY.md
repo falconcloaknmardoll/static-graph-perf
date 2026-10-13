@@ -93,6 +93,24 @@ regenerated where possible.* **Status: NOT STARTED** (O1's check landed 2026-09-
 
 Each entry records a check, what it found, and what changed as a result.
 
+- **2026-10-13 — Gate C on §5 figures: FIG-R2 showed batch-32 numbers; FIG-R1 titles contradicted option A. Both regenerated.**
+  - **Found** while adding §5 figure placeholders to the Google Doc draft. FIG-R2
+    (`experiments/figures/ablation_paired.png`) plotted the original Phase 2c eval-batch-32
+    result (Δτ −0.0117, p = .22), while §5 ¶2 reports batch 8 (Δτ −0.0235, p = .07, O8). A reader
+    would have seen two different numbers for one comparison. FIG-R1
+    (`phase6_xla_default_discovery.png`) carried the titles "architecture matters" and "the
+    effect is real", which is the framing rejected by option A (Oct 10), and did not say lr 1e-3.
+  - **Fixed:** both figures are now generated in `scripts/paper_figures.py` from the
+    eval-batch-8 JSONs (`eval_batch_sensitivity_xla_{default,random}.json`), with asserts
+    against the Desk's numbers: `paper/figures/fig_r1_xla_default_staircase.{pdf,png}` (no titles,
+    labelled "xla:default, shared lr 1e-3", decomposition panel left to the appendix) and
+    `fig_r2_xla_random_paired.{pdf,png}`. The rest of the script's outputs were unchanged by the rerun.
+  - **Dropped:** the old FIG-R2's "TPUGraphs paper baseline (0.34)" line had no source we could
+    confirm, and it differs from the 0.12 the Desk quotes for xla:default. It must not come back
+    without a citation.
+  - **Open (the first author's call):** FIG-R1 still shows only the lr-1e-3 result. Option: add a dashed line
+    for flat at its tuned LR (τ 0.2255) so the figure shows the gap closing on its own.
+
 - **2026-10-12 — O15: scoring sheet ready; the first author scores Oct 19–22.**
   - **Working sheet:** Claude Doc "Axis 3 scoring sheet — Frame B (10 papers)"
     (https://claude.ai/code/artifact/66007727-813a-47d6-9fb1-10a96b0dd6e2). It has one table per

@@ -2,7 +2,8 @@
 
   python scripts/paper_figures.py
 
-Outputs (paper/figures/, paper/tables/): FIG-K1 forest plot, FIG-R4 LR curves (6e + 6f), 8c arm table, MDE table,
+Outputs (paper/figures/, paper/tables/): FIG-K1 forest plot, FIG-R4 LR curves (6e + 6f), FIG-R1 xla:default
+staircase and FIG-R2 xla:random paired plot (both eval batch 8), 8c arm table, MDE table,
 audit axis table (recomputed from the 20 per-paper score tables, then checked against the
 ledger), hyperparameter table. Rerun after any result file changes; never edit outputs by hand.
 """
@@ -204,3 +205,50 @@ fig.tight_layout(pad=0.3)
 fig.savefig(f"{FIG}/fig_r4_lr_curves.pdf", metadata={"CreationDate": None}); fig.savefig(f"{FIG}/fig_r4_lr_curves.png", dpi=250)
 plt.close(fig)
 print("figure: fig_r4_lr_curves.pdf/png")
+
+
+def paired_panel(ax, arms, taus, labels):
+    """Seeds as grey connected dots (one line per seed), arm mean ± sd as black diamonds."""
+    vals = [np.asarray(taus[a]["8"]) for a in arms]
+    x = np.arange(len(arms))
+    for seed_vals in np.column_stack(vals):
+        ax.plot(x, seed_vals, color=MUTED, lw=0.5, alpha=0.6, marker="o", ms=2.2, zorder=1)
+    ax.errorbar(x, [v.mean() for v in vals], yerr=[v.std(ddof=1) for v in vals], fmt="D", color=INK,
+                ms=4, capsize=2, elinewidth=0.8, lw=0, zorder=3)
+    ax.set_xticks(x); ax.set_xticklabels(labels)
+    ax.set_xlim(-0.4, len(arms) - 0.6)
+    ax.set_ylabel("validation Kendall's τ")
+    for s_ in ("top", "right"):
+        ax.spines[s_].set_visible(False)
+    return vals
+
+
+# ── FIG-R1: the xla:default staircase at the shared lr 1e-3, eval batch 8 (§5 ¶1/¶5) ─────────
+# Left panel of the old phase6_xla_default_discovery.png, without its titles; the 6b
+# decomposition panel moved to the appendix (option A). ¶6 / FIG-R4 test this result.
+xd = load("experiments/eval_batch_sensitivity_xla_default.json")["taus"]
+fig, ax = plt.subplots(figsize=(3.3, 2.0))
+v = paired_panel(ax, ["wide-baseline", "hierarchical", "hardware"], xd, ["Flat", "+ Hierarchy", "+ Hardware\nedges"])
+assert abs(v[0].mean() - 0.0327) < 5e-4 and abs(v[2].mean() - 0.1977) < 5e-4  # Desk §5 ¶5
+ax.text(0.02, 0.98, "xla:default, shared lr 1e-3", transform=ax.transAxes, color=MUTED, fontsize=6.5, ha="left", va="top")
+ax.set_ylim(0, 0.25)
+fig.tight_layout(pad=0.3)
+fig.savefig(f"{FIG}/fig_r1_xla_default_staircase.pdf", metadata={"CreationDate": None})
+fig.savefig(f"{FIG}/fig_r1_xla_default_staircase.png", dpi=250)
+plt.close(fig)
+print("figure: fig_r1_xla_default_staircase.pdf/png")
+
+# ── FIG-R2: xla:random, parameter-matched flat vs DiffPool at eval batch 8 (§5 ¶2) ───────────
+# Replaces experiments/figures/ablation_paired.png, which showed the batch-32 numbers (p = .22).
+xr = load("experiments/eval_batch_sensitivity_xla_random.json")
+fig, ax = plt.subplots(figsize=(2.4, 2.0))
+v = paired_panel(ax, ["wide-baseline", "hierarchical"], xr["taus"], ["Flat", "Hierarchy\n(DiffPool)"])
+c = xr["contrasts"]["hierarchical-vs-flat@b8"]
+assert abs((v[1] - v[0]).mean() - c["mean"]) < 1e-9 and abs(c["p"] - 0.0702) < 5e-4  # Desk §5 ¶2
+ax.text(0.02, 0.02, "xla:random", transform=ax.transAxes, color=MUTED, fontsize=6.5, ha="left", va="bottom")
+ax.set_ylim(0.22, 0.335)
+fig.tight_layout(pad=0.3)
+fig.savefig(f"{FIG}/fig_r2_xla_random_paired.pdf", metadata={"CreationDate": None})
+fig.savefig(f"{FIG}/fig_r2_xla_random_paired.png", dpi=250)
+plt.close(fig)
+print("figure: fig_r2_xla_random_paired.pdf/png")
