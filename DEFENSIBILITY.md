@@ -96,6 +96,10 @@ regenerated where possible.* **Status: NOT STARTED** (O1's check landed 2026-09-
 
 Each entry records a check, what it found, and what changed as a result.
 
+- **2026-10-14 — Gate C on Doc §5 ¶5→¶6 framing + §4 LR sentence.**
+  - The first author asked whether ¶5 (xla:default lr-1e-3 'win') followed by ¶6 (tuning dissolves it) reads as an admission plus post-hoc justification. Finding: the structure is defensible because 6e was registered before the outcome and the shared LR is a disclosed design choice. It is the audit §8 ¶4 worked example. Risks to avoid: no rescue of the win in ¶6 (lr-1e-3 decomposition stays appendix-only, scoped); ¶5 should say 'passes Axes 1–3', not 'statistically convincing'; name the pre-registration at ¶6 open; keep the weak-flat flag (0.033 vs TPUGraphs 0.12; tuning moved flat +0.193 vs hw +0.029).
+  - Doc §4 says 'all arms training at lr 1e-4'; the shared LR is 1e-3 (only nlp:default amended runs use 1e-4). Flagged to the first author to fix (his prose).
+  *Lesson → Gate C: a result overturned by a registered check is reported as a registered failure, never paired with a rescue.*
 - **2026-10-14 — 8e evaluated (O18): the 8c conv effect is not shown robust to LR tuning.**
   - Evaluated in a GPU window between R4 runs (`scripts/run_8e_eval_window.sh`, 01:38–05:02); 8c reproduction gate 137/140 cells exact, max |Δ| 2e-6.
   - Q1 −0.0331, p = .17 (MDE 0.073) → "Not shown robust"; tuned baseline 1.0904 is below the §6 satisfiability boundary, so no n = 5 outcome could have been significant. Q2 +0.0299, p = .69.
