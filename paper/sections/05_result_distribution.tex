@@ -2,13 +2,13 @@
 \label{sec:result1}
 % Sitting 2 (Sep 29) = P1-P5; sitting 3 (Sep 30) = P6-P10. Skeleton tab: "section 5 Result I".
 
-% P1 -- same architectures: null on one collection, clear win on another
-% [[FIG-R1 | HAVE: phase6_xla_default_discovery.png]]
+% P1 -- option A preview: no structured model beats a matched flat model on any collection
+% [[FIG-R1 | HAVE: figures/fig_r1_xla_default_staircase.pdf]]
 
-% P2 -- xla:random, hierarchy vs matched flat: p=.22  \SLOT{O8}
-% [[FIG-R2 | HAVE: ablation_paired.png]]
+% P2 -- xla:random, hierarchy vs matched flat at eval batch 8: -0.0235, p=.07 (selection at 32, O8)  \SLOT{O8}
+% [[FIG-R2 | HAVE: figures/fig_r2_xla_random_paired.pdf]]
 
-% P3 -- xla:random, contention edges: p=.72; Top-K also null
+% P3 -- xla:random, contention edges at eval batch 8: -0.0241, p=.46; Top-K also null (O9 batch-8 file)
 
 % P4 -- nlp:random: hardware marginally WORSE (p=.0504)
 

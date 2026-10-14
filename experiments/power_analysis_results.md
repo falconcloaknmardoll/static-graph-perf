@@ -12,12 +12,12 @@ comparisons):
 
 | σ | n_seeds=3 | n_seeds=5 | n_seeds=7 | n_seeds=10 | n_seeds=15 | n_seeds=20 |
 |---|---|---|---|---|---|---|
-| 0.040 | 0.124 | 0.067 | 0.051 | 0.040 | 0.031 | 0.026 |
+| 0.040 | 0.124 | 0.066 | 0.051 | 0.040 | 0.031 | 0.026 |
 | 0.055 | 0.170 | 0.091 | 0.070 | 0.055 | 0.043 | 0.036 |
 | 0.070 | 0.217 | 0.116 | 0.089 | 0.070 | 0.055 | 0.046 |
 
 **Reading:** at the project's standard n_seeds=5, the minimum reliably detectable Δτ is
-**0.067–0.116** depending on where the true noise falls in the C9 range. This is a
+**0.066–0.116** (corrected 2026-10-14: the tool gives 0.066499 at σ=0.040; was printed as 0.067) depending on where the true noise falls in the C9 range. This is a
 quantitative validation of C9 from first principles, not just an empirical observation — and
 it explains, mechanically, why this project's own results split the way they do:
 - The 8c channel-arm effect (Δslowdown=−0.30, later restated on CONV Top-1 slowdown) and the
