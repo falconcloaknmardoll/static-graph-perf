@@ -96,6 +96,11 @@ regenerated where possible.* **Status: NOT STARTED** (O1's check landed 2026-09-
 
 Each entry records a check, what it found, and what changed as a result.
 
+- **2026-10-15 — Framing decided after 8e (Gate C).**
+  - The first author decided (1) unify the paper around baseline strength: both shared-LR gains (connectivity +0.165 τ; MXU feature −0.30 CONV Top-1) shrink below detection once the baseline is tuned (6e/6f; 8e). (2) §6 leads with the model-free 2.77×; Phase 5's lr-1e-3 model error comes second with the tuned baseline's 1.09 beside it.
+  - Taken while R4 was still being evaluated, on purpose: R4 is exploratory and cannot lift 8e's registered §7 constraints, and choosing the framing after seeing it would invite the post-hoc reading the audit criticises.
+  - Applied to claim lines only (Desk skeleton, Primer, Manuscript Desk tab, Google Doc [[SLOT]]s, outline). The first author rewrites the abstract, §1 ¶5 and §10 in his own words; the second author sees the framing before the Oct 16 draft.
+  *Lesson → Gate C: when two results share a failure mode (an untuned baseline), report them as one pattern rather than one win and one caveat.*
 - **2026-10-15 — R0, O19 and O21 evaluated; R3/R4 evaluation started.**
   - All GPU queues (k–p) finished overnight with no errors or OOM (R0's earlier OOM did not recur).
   - **R0** (`r0_conv_top1_results.md`, exploratory, partially observed): hierarchical − flat CONV Top-1 +0.0216 (p .77, MDE 0.257), contention-edge − flat +0.0026 (p .97, MDE 0.283) at b32; b8 the same. Declaration §4 row 1: "adding structure does not narrow the CONV gap; adding MXU information does" (lr 1e-3; quote the MDE, which is close to 8c's 0.30, so "no detectable narrowing"). Makes the option-A contrast like-for-like on metric and recipe; 8e's LR verdict still scopes the MXU half.
