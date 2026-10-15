@@ -1,0 +1,351 @@
+{
+ "eval_batches": [
+  32,
+  8
+ ],
+ "primary_batch": 32,
+ "arms": {
+  "b32": {
+   "flat": {
+    "conv": [
+     1.3165852893583663,
+     1.431438731767799,
+     1.0763795344155158,
+     1.415654360277365,
+     1.1382180343340889
+    ],
+    "other": [
+     1.031937352440791,
+     1.0328411963494424,
+     1.0251890641222854,
+     1.0256684556512288,
+     1.015051280508091
+    ],
+    "per_instance": {
+     "xla/default::bert_pretraining.4x4.fp16": 1.0082392450555635,
+     "xla/default::inception_v3_batch_128_train": 1.210770218866313,
+     "xla/default::mlperf_bert_batch_24_2x2": 1.0569146121576978,
+     "xla/default::resnet50.4x4.fp16": 1.0349087825648904,
+     "xla/default::resnet_v1_50_official_batch_128_bf16": 1.0312337410660395,
+     "xla/default::tf2_bert_pretrain_dynamic_batch_size": 1.0238383341886486,
+     "xla/default::unet_3d.4x4.bf16": 1.001609609695646,
+     "xla/random::bert_pretraining.4x4.fp16": 1.059097554558382,
+     "xla/random::inception_v3_batch_128_train": 1.4433403391570219,
+     "xla/random::mlperf_bert_batch_24_2x2": 1.0049865564643548,
+     "xla/random::resnet50.4x4.fp16": 1.5110223094282227,
+     "xla/random::resnet_v1_50_official_batch_128_bf16": 1.4226557491012741,
+     "xla/random::tf2_bert_pretrain_dynamic_batch_size": 1.0415817930334677,
+     "xla/random::unet_3d.4x4.bf16": 1.0128320533611817
+    }
+   },
+   "hierarchical": {
+    "conv": [
+     1.2152659491096023,
+     1.3509596165880071,
+     1.2416296014120856,
+     1.326401267482855,
+     1.3518476457863804
+    ],
+    "other": [
+     1.0119559172023087,
+     1.0097127883116774,
+     1.0235214022399242,
+     1.0168771189640649,
+     1.0174441514347345
+    ],
+    "per_instance": {
+     "xla/default::bert_pretraining.4x4.fp16": 1.000705427731804,
+     "xla/default::inception_v3_batch_128_train": 1.0524456775854658,
+     "xla/default::mlperf_bert_batch_24_2x2": 1.0068497184709089,
+     "xla/default::resnet50.4x4.fp16": 1.259147337119516,
+     "xla/default::resnet_v1_50_official_batch_128_bf16": 1.007043192868382,
+     "xla/default::tf2_bert_pretrain_dynamic_batch_size": 1.0005483492929887,
+     "xla/default::unet_3d.4x4.bf16": 1.000060913249337,
+     "xla/random::bert_pretraining.4x4.fp16": 1.0587848387044143,
+     "xla/random::inception_v3_batch_128_train": 1.5442764022288138,
+     "xla/random::mlperf_bert_batch_24_2x2": 1.0054115769857987,
+     "xla/random::resnet50.4x4.fp16": 1.347233346717749,
+     "xla/random::resnet_v1_50_official_batch_128_bf16": 1.5731789399347906,
+     "xla/random::tf2_bert_pretrain_dynamic_batch_size": 1.0483470243955473,
+     "xla/random::unet_3d.4x4.bf16": 1.0065103562135365
+    }
+   },
+   "hardware": {
+    "conv": [
+     1.3992959476777787,
+     1.204777810109644,
+     1.2489603516015098,
+     1.2908760455159347,
+     1.2474996536505552
+    ],
+    "other": [
+     1.036307873679193,
+     1.0150252371587238,
+     1.0843071216056561,
+     1.0276113057693546,
+     1.0377791924690336
+    ],
+    "per_instance": {
+     "xla/default::bert_pretraining.4x4.fp16": 1.0090051305903933,
+     "xla/default::inception_v3_batch_128_train": 1.1227699796354207,
+     "xla/default::mlperf_bert_batch_24_2x2": 1.0055374007620244,
+     "xla/default::resnet50.4x4.fp16": 1.1067404111988544,
+     "xla/default::resnet_v1_50_official_batch_128_bf16": 1.0083549852129048,
+     "xla/default::tf2_bert_pretrain_dynamic_batch_size": 1.01336958723011,
+     "xla/default::unet_3d.4x4.bf16": 1.0015983688006453,
+     "xla/random::bert_pretraining.4x4.fp16": 1.0739729974412406,
+     "xla/random::inception_v3_batch_128_train": 1.4389199578323435,
+     "xla/random::mlperf_bert_batch_24_2x2": 1.1392402558302854,
+     "xla/random::resnet50.4x4.fp16": 1.5125987041866682,
+     "xla/random::resnet_v1_50_official_batch_128_bf16": 1.4803077322003153,
+     "xla/random::tf2_bert_pretrain_dynamic_batch_size": 1.071017867518709,
+     "xla/random::unet_3d.4x4.bf16": 1.0079075609177297
+    }
+   }
+  },
+  "b8": {
+   "flat": {
+    "conv": [
+     1.3165770192270172,
+     1.4185572747668476,
+     1.0448551055631614,
+     1.2359588030615052,
+     1.2109450184669137
+    ],
+    "other": [
+     1.0422849677284545,
+     1.0363549543231128,
+     1.0261316662437412,
+     1.0217778410919947,
+     1.03122288518723
+    ],
+    "per_instance": {
+     "xla/default::bert_pretraining.4x4.fp16": 1.013109407837992,
+     "xla/default::inception_v3_batch_128_train": 1.2019267446105437,
+     "xla/default::mlperf_bert_batch_24_2x2": 1.0393084583264338,
+     "xla/default::resnet50.4x4.fp16": 1.0347161760147863,
+     "xla/default::resnet_v1_50_official_batch_128_bf16": 1.029844267532413,
+     "xla/default::tf2_bert_pretrain_dynamic_batch_size": 1.036881944441759,
+     "xla/default::unet_3d.4x4.bf16": 1.0032945955712826,
+     "xla/random::bert_pretraining.4x4.fp16": 1.0664921580204179,
+     "xla/random::inception_v3_batch_128_train": 1.4272587414661975,
+     "xla/random::mlperf_bert_batch_24_2x2": 1.0049923342600724,
+     "xla/random::resnet50.4x4.fp16": 1.4820076903995276,
+     "xla/random::resnet_v1_50_official_batch_128_bf16": 1.2965182452790658,
+     "xla/random::tf2_bert_pretrain_dynamic_batch_size": 1.077218209382531,
+     "xla/random::unet_3d.4x4.bf16": 1.0111385954787644
+    }
+   },
+   "hierarchical": {
+    "conv": [
+     1.2731826267747774,
+     1.2222116914061372,
+     1.1658987584085223,
+     1.300905260263587,
+     1.2896712944020656
+    ],
+    "other": [
+     1.0408973723873274,
+     1.0393572645091966,
+     1.0301829325222542,
+     1.018986690605598,
+     1.0063030281439036
+    ],
+    "per_instance": {
+     "xla/default::bert_pretraining.4x4.fp16": 1.0005969530732446,
+     "xla/default::inception_v3_batch_128_train": 1.2959317938259685,
+     "xla/default::mlperf_bert_batch_24_2x2": 1.0068390255817359,
+     "xla/default::resnet50.4x4.fp16": 1.0381557268761632,
+     "xla/default::resnet_v1_50_official_batch_128_bf16": 1.0748834894365789,
+     "xla/default::tf2_bert_pretrain_dynamic_batch_size": 1.007028709976947,
+     "xla/default::unet_3d.4x4.bf16": 1.0000771136727076,
+     "xla/random::bert_pretraining.4x4.fp16": 1.078152299680097,
+     "xla/random::inception_v3_batch_128_train": 1.5684162070712464,
+     "xla/random::mlperf_bert_batch_24_2x2": 1.059047654708881,
+     "xla/random::resnet50.4x4.fp16": 1.4329661181122233,
+     "xla/random::resnet_v1_50_official_batch_128_bf16": 1.0918902221839275,
+     "xla/random::tf2_bert_pretrain_dynamic_batch_size": 1.06538273728631,
+     "xla/random::unet_3d.4x4.bf16": 1.0000391670893243
+    }
+   },
+   "hardware": {
+    "conv": [
+     1.2560433384340093,
+     1.2075418166984015,
+     1.1987323711595939,
+     1.2595342550571036,
+     1.3349105888377994
+    ],
+    "other": [
+     1.0417915307529526,
+     1.044872251492924,
+     1.0455632672517596,
+     1.033905830450776,
+     1.0366846384787571
+    ],
+    "per_instance": {
+     "xla/default::bert_pretraining.4x4.fp16": 1.022581693839336,
+     "xla/default::inception_v3_batch_128_train": 1.2762620997507477,
+     "xla/default::mlperf_bert_batch_24_2x2": 1.00554694281489,
+     "xla/default::resnet50.4x4.fp16": 1.0951033499268275,
+     "xla/default::resnet_v1_50_official_batch_128_bf16": 1.0201850231699754,
+     "xla/default::tf2_bert_pretrain_dynamic_batch_size": 1.0070493870798787,
+     "xla/default::unet_3d.4x4.bf16": 1.0016063775595674,
+     "xla/random::bert_pretraining.4x4.fp16": 1.0988023363704642,
+     "xla/random::inception_v3_batch_128_train": 1.4379625786341679,
+     "xla/random::mlperf_bert_batch_24_2x2": 1.09730402050836,
+     "xla/random::resnet50.4x4.fp16": 1.5607965199545073,
+     "xla/random::resnet_v1_50_official_batch_128_bf16": 1.1178052727880634,
+     "xla/random::tf2_bert_pretrain_dynamic_batch_size": 1.0836917652696154,
+     "xla/random::unet_3d.4x4.bf16": 1.0079255060413597
+    }
+   }
+  }
+ },
+ "contrasts": {
+  "b32:hierarchical-flat:conv": {
+   "delta": 0.021565626045159058,
+   "p_t": 0.7703678054847772,
+   "p_w": 0.8125,
+   "ci": [
+    -0.09232479625326802,
+    0.14337716171178685
+   ],
+   "d": 0.13969499788117,
+   "mde": 0.25664726371219027,
+   "per_seed_delta": [
+    -0.1013,
+    -0.0805,
+    0.1653,
+    -0.0893,
+    0.2136
+   ]
+  },
+  "b32:hierarchical-flat:other": {
+   "delta": -0.010235194183825768,
+   "p_t": 0.10908129950445306,
+   "p_w": 0.1875,
+   "ci": [
+    -0.01900220464793172,
+    -0.0014681837197198177
+   ],
+   "d": -0.9189812611415228,
+   "mde": 0.018515901184286615,
+   "per_seed_delta": [
+    -0.02,
+    -0.0231,
+    -0.0017,
+    -0.0088,
+    0.0024
+   ]
+  },
+  "b32:hardware-flat:conv": {
+   "delta": 0.0026267716804574625,
+   "p_t": 0.9740796463682755,
+   "p_w": 1.0,
+   "ci": [
+    -0.13909589208388579,
+    0.12928710626486656
+   ],
+   "d": 0.015459760422412048,
+   "mde": 0.2824717298980035,
+   "per_seed_delta": [
+    0.0827,
+    -0.2267,
+    0.1726,
+    -0.1248,
+    0.1093
+   ]
+  },
+  "b32:hardware-flat:other": {
+   "delta": 0.01406867632202453,
+   "p_t": 0.3389106963888619,
+   "p_w": 0.3125,
+   "ci": [
+    -0.005755423098617429,
+    0.037283970169913916
+   ],
+   "d": 0.48526029527634706,
+   "mde": 0.04819854225761197,
+   "per_seed_delta": [
+    0.0044,
+    -0.0178,
+    0.0591,
+    0.0019,
+    0.0227
+   ]
+  },
+  "b8:hierarchical-flat:conv": {
+   "delta": 0.004995282033928916,
+   "p_t": 0.9345766393036667,
+   "p_w": 0.8125,
+   "ci": [
+    -0.10457486881562801,
+    0.0928972629526215
+   ],
+   "d": 0.03907296900308911,
+   "mde": 0.2125391915676965,
+   "per_seed_delta": [
+    -0.0434,
+    -0.1963,
+    0.121,
+    0.0649,
+    0.0787
+   ]
+  },
+  "b8:hierarchical-flat:other": {
+   "delta": -0.004409005281250655,
+   "p_t": 0.45118504291133443,
+   "p_w": 1.0,
+   "ci": [
+    -0.01469989106757259,
+    0.002543911517613351
+   ],
+   "d": -0.3729803890942612,
+   "mde": 0.01965214885217673,
+   "per_seed_delta": [
+    -0.0014,
+    0.003,
+    0.0041,
+    -0.0028,
+    -0.0249
+   ]
+  },
+  "b8:hardware-flat:conv": {
+   "delta": 0.005973829820292531,
+   "p_t": 0.932422203033416,
+   "p_w": 1.0,
+   "ci": [
+    -0.11392289692549204,
+    0.11585222478604695
+   ],
+   "d": 0.04036396970032555,
+   "mde": 0.24604491764043593,
+   "per_seed_delta": [
+    -0.0605,
+    -0.211,
+    0.1539,
+    0.0236,
+    0.124
+   ]
+  },
+  "b8:hardware-flat:other": {
+   "delta": 0.009009040770527266,
+   "p_t": 0.053690438663574994,
+   "p_w": 0.125,
+   "ci": [
+    0.003221886344760572,
+    0.015065879472735588
+   ],
+   "d": 1.2107139316559117,
+   "mde": 0.012370647618748069,
+   "per_seed_delta": [
+    -0.0005,
+    0.0085,
+    0.0194,
+    0.0121,
+    0.0055
+   ]
+  }
+ }
+}
