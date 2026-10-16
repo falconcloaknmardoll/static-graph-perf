@@ -42,3 +42,12 @@ Frozen: `r3_scramble_gpu_replication_declaration.md`. lr 1e-3, 5 seeds, 8c froze
 
 - R3-P4 Δ -0.2212, p = 0.0033, MDE 0.1312 → **P4 replicates at matched hardware**.
 - OTHER placebo on GPU: Δ +0.0072, p = 0.477 (b8: +0.0048, p = 0.439). The registered CPU-arm placebo was +0.0079, p = .028. It does not move on GPU, consistent with the CPU-offset explanation.
+
+## Outcome (declaration §3 table, applied 2026-10-16)
+
+- **Row 1 applies: "P4 replicates at matched hardware."** R3-P4 (channel, GPU − scramble, GPU, CONV, batch 32) Δ −0.2212, 95% CI [−0.2889, −0.1715], p = .0033, d −2.80, MDE 0.131. Batch 8 the same: −0.2330, p = .0036. Report it beside the registered P4 (scramble on CPU: −0.2442, p = .0063), which stays primary.
+- **O17 → answered for P4.** The §7 wording changes from "not tested at matched hardware" to "replicated at matched hardware". The compute statement still says which registered arms trained on CPU (the 8c scramble control and the 8d oracle).
+- **Contrast 3 (hardware offset, descriptive):** scramble GPU − CPU, CONV −0.0230 (p = .61, MDE 0.155), OTHER −0.0007 (p = .94). No detectable offset; at n = 5 this rules out only a large one.
+- **Placebo:** scramble-GPU − baseline, OTHER +0.0072, p = .48 (batch 8 +0.0048, p = .44). The registered CPU-arm wobble (+0.0079, p = .028) does not recur on GPU. Together with O19 (absent at batch 8) it is attributed to the CPU arm and the eval batch, not to the scramble feature.
+- Wilcoxon p = .0625 on every contrast is the n = 5 floor (all five seeds in the same direction); the t-test decides.
+- Scope: like 8c and P4, an lr-1e-3 result. 8e's verdict ("not shown robust to LR tuning") still governs §7's claims; R3 says the lr-1e-3 gain is specific to the real MXU values, not that it survives tuning.

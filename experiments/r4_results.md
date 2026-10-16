@@ -75,3 +75,12 @@ Per family (mean over its instances, then over seeds) and leave-one-family-out:
 ## Verdict (declaration §4 table, batch 32)
 
 - Δ -0.1128, p = 0.346, MDE 0.3932 → **direction consistent on held-out families, not significant at n = 5**.
+
+## Outcome (declaration §4 table + Amendment 1, applied 2026-10-16)
+
+- **Row 2 applies: "Direction consistent on held-out families, not significant at n = 5 (MDE 0.393)."** Channel − baseline on the 19 held-out instances, both at 8e's LR* (3e-5), batch 32: Δ −0.1128, 95% CI [−0.2955, +0.0699], p = .35. No "trending". Read beside 8e Q1 (the tuned contrast), not 8c's lr-1e-3 contrast (Amendment 1).
+- **Disclose in the same sentence: the direction is eval-batch-sensitive.** At batch 8 the sign flips: +0.1311, p = .31, MDE 0.415. The registered batch (32) decides the row; the flip means even "direction consistent" holds only at batch 32.
+- **Placebo:** OTHER −0.0057, p = .44 (batch 8 +0.0020, p = .70). Clean.
+- **Concentration (from the tables above):** at batch 32 two instances carry the effect (xla:random retinanet.4x4.bf16.performance −1.553, alexnet −0.889). Most instances sit near 1.00 with Δ ≈ 0; mnasnet (+0.219) and retinanet.2x2 (+0.276) go the other way. Leave-one-family-out: no single drop makes batch 32 significant. At batch 8, dropping retinanet gives +0.2689, p = .042 (channel worse): 1 of 12 uncorrected exploratory tests, recorded in DEFENSIBILITY O20, not a claim.
+- **Post hoc, not a claim:** the tuned baseline scores 1.2963 on these unseen families against 1.0904 on 8c's three validation conv graphs (different graphs, splits and training sets).
+- **Consequence for §7 (O20):** the two-family limit stays disclosed. R4 does not show the tuned channel effect generalises, and at MDE 0.39 it could detect only a large one. Leave-one-graph-out (`phase8c_leave_one_graph_out.md`) remains the within-validation robustness check, at lr 1e-3.
