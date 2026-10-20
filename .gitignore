@@ -50,3 +50,4 @@ checkpoints_*.log
 
 # anonymization tooling — documents the scrub procedure, must not ship in the artifact
 build_anon_mirror.sh
+PAUSE_GPU_QUEUE
