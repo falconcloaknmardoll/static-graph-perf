@@ -2,8 +2,9 @@
 
   python scripts/paper_figures.py
 
-Outputs (paper/figures/, paper/tables/): FIG-K1 forest plot, FIG-R4 LR curves (6e + 6f), FIG-R1 xla:default
-staircase and FIG-R2 xla:random paired plot (both eval batch 8), 8c arm table, MDE table,
+Outputs (paper/figures/, paper/tables/): FIG-K1 forest plot (lr 1e-3 and LR-tuned groups), FIG-R4 LR curves
+(6e + 6f), FIG-R1 xla:default staircase and FIG-R2 xla:random paired plot (both eval batch 8), 8c arm table,
+§7 robustness table, appendix eval-batch table, MDE table,
 audit axis table (recomputed from the 20 per-paper score tables, then checked against the
 ledger), hyperparameter table. Rerun after any result file changes; never edit outputs by hand.
 """
@@ -36,43 +37,68 @@ def ci95(x):
     return x.mean(), x.mean() - h, x.mean() + h
 
 
-# ── FIG-K1: CONV Top-1 slowdown per arm, mean + 95% CI (t, df=4) + the five seeds ──────────
+# ── FIG-K1: CONV Top-1 slowdown per arm, mean + 95% CI (t, df = n−1) + the seeds ─────────────
+# Two groups: the shared lr 1e-3 arms (8c, P4 control, 8d), and the LR-tuned arms at 3e-5
+# (8e channel, R5 baseline and oracle). All at eval batch 32, the registered batch (O19).
 c8 = load("experiments/phase8c_results.json")
 d8 = load("experiments/phase8d_results.json")
 ctl = load("experiments/phase8c_control_results.json")
+e8 = load("experiments/phase8e_results.json")
+r5 = load("experiments/r5_results.json")
 for arm in ("baseline", "channel"):   # the same runs appear in all three files
     assert c8["per_arm_seed_means"][arm]["conv"] == d8["per_arm_seed_means"][arm]["conv"] \
         == ctl["per_arm_seed_means"][arm]["conv"], arm
-rows = [("Baseline", c8, "baseline", "control"),
-        ("Scramble control", ctl, "scramble", "control"),
-        ("Full MXU", c8, "full", "enc"),
-        ("Spatial MXU", c8, "spatial", "enc"),
-        ("Channel MXU", c8, "channel", "primary"),
-        ("Oracle", d8, "oracle-bucket", "oracle")]
+OLD_SEEDS = ["42", "100", "123", "456", "789"]                  # 8e's seeds, in 8e's per-seed order
+r5_base = [r5["per_seed"]["b32"]["baseline"][s] for s in map(str, r5["seeds"])]
+r5_orc = [r5["per_seed"]["b32"]["oracle"][s] for s in map(str, r5["seeds"])]
+# 8e's channel@3e-5 per seed = its baseline (R5 reads the same 8e cache) + 8e's Q1 per-seed delta
+ch_tuned = [r5["per_seed"]["b32"]["baseline"][s] + dl
+            for s, dl in zip(OLD_SEEDS, e8["contrasts"]["b32:Q1:conv"]["per_seed_delta"])]
+assert abs(np.mean(r5_base) - r5["means"]["b32"]["baseline"]["conv"]) < 1e-3
+assert abs(np.mean(r5_orc) - r5["means"]["b32"]["oracle"]["conv"]) < 1e-3
+assert abs(np.mean(ch_tuned) - np.mean([r5["per_seed"]["b32"]["baseline"][s] for s in OLD_SEEDS])
+           - e8["contrasts"]["b32:Q1:conv"]["delta"]) < 1e-3
+groups = [("Shared lr 1e-3 (n = 5)", [
+              ("Baseline", c8["per_arm_seed_means"]["baseline"]["conv"], "control"),
+              ("Scramble control", ctl["per_arm_seed_means"]["scramble"]["conv"], "control"),
+              ("Full MXU", c8["per_arm_seed_means"]["full"]["conv"], "enc"),
+              ("Spatial MXU", c8["per_arm_seed_means"]["spatial"]["conv"], "enc"),
+              ("Channel MXU", c8["per_arm_seed_means"]["channel"]["conv"], "primary"),
+              ("Oracle", d8["per_arm_seed_means"]["oracle-bucket"]["conv"], "oracle")]),
+          ("Both LR-tuned, lr 3e-5", [
+              ("Baseline (n = 10)", r5_base, "control"),
+              ("Channel MXU (n = 5)", ch_tuned, "primary"),
+              ("Oracle (n = 10)", r5_orc, "oracle")])]
 
-fig, ax = plt.subplots(figsize=(3.3, 2.1))
-base_mean = np.mean(c8["per_arm_seed_means"]["baseline"]["conv"])
+n_rows = sum(len(g) + 1 for _, g in groups)
+fig, ax = plt.subplots(figsize=(3.4, 3.1))
 ax.axvline(1.0, color=MUTED, lw=0.6, ls=(0, (2, 2)))
-ax.axvline(base_mean, color=GRID, lw=0.8)
-for i, (label, src, arm, role) in enumerate(rows):
-    y = len(rows) - 1 - i
-    seeds = src["per_arm_seed_means"][arm]["conv"]
-    m, lo, hi = ci95(seeds)
-    col = ACCENT if role == "primary" else INK
-    ax.scatter(seeds, [y] * len(seeds), s=9, facecolors="none", edgecolors=MUTED, lw=0.5, zorder=2)
-    ax.plot([lo, hi], [y, y], color=col, lw=1.2, solid_capstyle="round", zorder=3)
-    marker = "D" if role == "oracle" else "o"
-    face = "white" if role == "control" else col
-    ax.scatter([m], [y], s=26, marker=marker, facecolors=face, edgecolors=col, lw=1.0, zorder=4)
-ax.set_yticks(range(len(rows)))
-ax.set_yticklabels([r[0] for r in rows][::-1])
-ax.set_xlabel("CONV Top-1 slowdown")
+y, ticks, labels = n_rows - 1, [], []
+for gname, rows in groups:
+    ax.text(0.952, y, gname, fontsize=7, fontweight="bold", color=INK, ha="left", va="center")
+    y_top = y - 0.5
+    y -= 1
+    base_mean = np.mean(rows[0][1])
+    ax.plot([base_mean, base_mean], [y - len(rows) + 0.6, y_top], color=GRID, lw=0.8, zorder=1)
+    for label, seeds, role in rows:
+        m, lo, hi = ci95(seeds)
+        col = ACCENT if role == "primary" else INK
+        ax.scatter(seeds, [y] * len(seeds), s=9, facecolors="none", edgecolors=MUTED, lw=0.5, zorder=2)
+        ax.plot([lo, hi], [y, y], color=col, lw=1.2, solid_capstyle="round", zorder=3)
+        marker = "D" if role == "oracle" else "o"
+        face = "white" if role == "control" else col
+        ax.scatter([m], [y], s=26, marker=marker, facecolors=face, edgecolors=col, lw=1.0, zorder=4)
+        ticks.append(y); labels.append(label)
+        y -= 1
+ax.set_yticks(ticks)
+ax.set_yticklabels(labels)
+ax.set_xlabel("CONV Top-1 slowdown, eval batch 32")
 ax.set_xlim(0.95, 1.56)
-ax.text(1.005, len(rows) - 0.45, "optimal", color=MUTED, fontsize=6.5, ha="left", va="bottom")
+ax.text(1.005, -0.75, "optimal", color=MUTED, fontsize=6.5, ha="left", va="center")
 for s in ("top", "right", "left"):
     ax.spines[s].set_visible(False)
 ax.tick_params(axis="y", length=0)
-ax.set_ylim(-0.6, len(rows) - 0.2)
+ax.set_ylim(-1.0, n_rows - 0.4)
 fig.tight_layout(pad=0.3)
 fig.savefig(f"{FIG}/fig_k1_forest.pdf", metadata={"CreationDate": None}); fig.savefig(f"{FIG}/fig_k1_forest.png", dpi=250)
 plt.close(fig)
@@ -82,16 +108,114 @@ def pm(x):
     return f"{np.mean(x):.4f} $\\pm$ {np.std(x, ddof=1):.4f}"
 
 
-lines = [r"\begin{tabular}{lcccc}", r"\toprule",
-         r"Arm & CONV slowdown & OTHER slowdown & $\Delta$ CONV & BH-$p$ \\", r"\midrule"]
+lines = [r"\begin{tabular}{lccccc}", r"\toprule",
+         r"Arm & CONV slowdown & OTHER slowdown & $\Delta$ CONV & BH-$p$ & $d$ \\", r"\midrule"]
 for arm in ("baseline", "channel", "spatial", "full"):
     s = c8["per_arm_seed_means"][arm]
     t = c8["primary"].get(arm)
     lines.append(f"{arm} & {pm(s['conv'])} & {pm(s['other'])} & "
-                 + (f"{t['delta']:+.4f} & {t['p_bh']:.4f}" if t else "-- & --") + r" \\")
+                 + (f"{t['delta']:+.4f} & {t['p_bh']:.4f} & {t['d']:+.2f}" if t else "-- & -- & --") + r" \\")
 lines += [r"\bottomrule", r"\end{tabular}"]
 open(f"{TAB}/phase8c_arms.tex", "w").write(
     "% Generated by scripts/paper_figures.py from experiments/phase8c_results.json\n" + "\n".join(lines) + "\n")
+
+# ── §7 robustness table: every check the 8c result faced, registered batch 32 + batch 8 ─────
+o19 = load("experiments/o19_8c8d_batch8_results.json")
+r3 = load("experiments/r3_results.json")
+r4 = load("experiments/r4_results.json")
+r0 = load("experiments/r0_conv_top1_results.json")
+CONV = phase8c_evaluate.CONV_GRAPHS
+
+
+def fp(p):
+    return "<.001" if p < 0.001 else (f"{p:.4f}" if p < 0.01 else f"{p:.3f}").lstrip("0")
+
+
+def loo(raw):
+    """Leave-one-CONV-graph-out channel − baseline (both collections dropped), per drop: (Δ, p)."""
+    out = []
+    for drop in sorted(CONV):
+        keys = [k for k in raw["baseline"] if k.split("::")[1] in CONV and k.split("::")[1] != drop]
+        b = np.array([np.mean([raw["baseline"][k][s] for k in keys]) for s in OLD_SEEDS])
+        c = np.array([np.mean([raw["channel"][k][s] for k in keys]) for s in OLD_SEEDS])
+        out.append(((c - b).mean(), st.ttest_rel(c, b).pvalue))
+    return out
+
+
+def cell(c, bh=False):
+    p = c["p_bh"] if bh else c["p_t"]
+    return f"{c['delta']:+.3f}", fp(p), (f"{c['mde']:.3f}" if c.get("mde") else "--")
+
+
+loo32, loo8 = loo(c8["raw"]), loo({a: o19["raw"]["8"][a] for a in ("baseline", "channel")})
+assert abs(min(d for d, _ in loo32) + 0.3783) < 1e-3 and abs(max(d for d, _ in loo32) + 0.2597) < 1e-3
+O = lambda b, k: o19["contrasts"][f"b{b}:{k}"]
+ROB = [  # (check, contrast, lr, n, b32 cell, b8 cell, status)
+    ("8c primary", "channel $-$ baseline", "1e-3", "5",
+     cell(O(32, "8c primary: channel − baseline:conv"), True), cell(O(8, "8c primary: channel − baseline:conv"), True), "prereg."),
+    ("Leave one graph out", "channel $-$ baseline", "1e-3", "5",
+     (f"{min(d for d, _ in loo32):+.3f} to {max(d for d, _ in loo32):+.3f}", r"$\le$" + fp(max(p for _, p in loo32)), "--"),
+     (f"{min(d for d, _ in loo8):+.3f} to {max(d for d, _ in loo8):+.3f}", r"$\le$" + fp(max(p for _, p in loo8)), "--"), "post hoc"),
+    ("P4 scramble control", "channel $-$ scramble (CPU)", "1e-3", "5",
+     cell(O(32, "P4: channel − scramble:conv")), cell(O(8, "P4: channel − scramble:conv")), "prereg."),
+    ("R3 matched hardware", "channel $-$ scramble (GPU)", "1e-3", "5",
+     cell(r3["contrasts"]["b32:R3-P4: channel − scramble-GPU:conv"]), cell(r3["contrasts"]["b8:R3-P4: channel − scramble-GPU:conv"]), "declared"),
+    ("8e LR tuning (Q1)", "channel $-$ baseline", "3e-5", "5",
+     cell(e8["contrasts"]["b32:Q1:conv"]), cell(e8["contrasts"]["b8:Q1:conv"]), "prereg."),
+    ("8e LR tuning (Q2)", "channel@1e-3 $-$ baseline@3e-5", "mixed", "5",
+     cell(e8["contrasts"]["b32:Q2:conv"]), cell(e8["contrasts"]["b8:Q2:conv"]) if isinstance(e8["contrasts"]["b8:Q2:conv"], dict) else ("--", "--", "--"), "prereg."),
+    ("R4 held-out families", "channel $-$ baseline", "3e-5", "5",
+     cell(r4["contrasts"]["b32:primary"]), cell(r4["contrasts"]["b8:primary"]), "declared, expl."),
+    ("8d oracle (P5)", "oracle $-$ channel", "1e-3", "5",
+     cell(O(32, "8d primary: oracle − channel:conv")), cell(O(8, "8d primary: oracle − channel:conv")), "prereg."),
+    ("R5 tuned oracle", "oracle $-$ baseline", "3e-5", "10",
+     cell(r5["contrasts"]["b32:primary"]), cell(r5["contrasts"]["b8:primary"]), "declared"),
+]
+lines = [r"\begin{tabular}{llcccccccl}", r"\toprule",
+         r" & & & & \multicolumn{3}{c}{Eval batch 32 (registered)} & \multicolumn{2}{c}{Eval batch 8} & \\",
+         r"\cmidrule(lr){5-7}\cmidrule(lr){8-9}",
+         r"Check & Contrast & lr & $n$ & $\Delta$ & $p$ & MDE & $\Delta$ & $p$ & Status \\", r"\midrule"]
+for chk, con, lr, n, a, b, stat in ROB:
+    lines.append(f"{chk} & {con} & {lr} & {n} & {a[0]} & {a[1]} & {a[2]} & {b[0]} & {b[1]} & {stat} \\\\")
+lines += [r"\bottomrule", r"\end{tabular}"]
+open(f"{TAB}/capstone_robustness.tex", "w").write(
+    "% Generated by scripts/paper_figures.py from o19_8c8d_batch8, phase8c, r3, phase8e, r4, r5 results JSON.\n"
+    "% CONV Top-1 slowdown, paired by seed; Delta < 0 = first arm closer to optimal. 8c p is BH-adjusted\n"
+    "% over the three 8c arms; others are paired t. Leave-one-graph-out: range over the 3 drops, max p.\n"
+    + "\n".join(lines) + "\n")
+
+# ── Appendix: every headline contrast at eval batch 8 and 32 (O1, O8, O19, O21) ─────────────
+ebd = load("experiments/eval_batch_sensitivity_xla_default.json")["contrasts"]
+ebr = load("experiments/eval_batch_sensitivity_xla_random.json")["contrasts"]
+e6, f6 = load("experiments/phase6e_results.json"), load("experiments/phase6f_results.json")
+d6 = load("experiments/phase6d_amended_results.json")
+sens = lambda c, k, b: (f"{c[f'{k}@b{b}']['mean']:+.3f}", fp(c[f"{k}@b{b}"]["p"]))
+reg = lambda c: (f"{c['mean_delta']:+.3f}", fp(c["p"]))
+two = lambda c: (f"{c['delta']:+.3f}", fp(c.get("p_bh", c["p_t"])))
+NA = ("--", "--")
+EB = [  # (section, contrast, metric, b8, b32, registered batch)
+    (r"\S5", "contention-edge $-$ flat, xla:default, lr 1e-3", r"$\tau$", sens(ebd, "hardware-vs-flat", 8), sens(ebd, "hardware-vs-flat", 32), "8"),
+    (r"\S5", "hierarchical $-$ flat, xla:default, lr 1e-3", r"$\tau$", sens(ebd, "hierarchical-vs-flat", 8), sens(ebd, "hierarchical-vs-flat", 32), "8"),
+    (r"\S5", "hierarchical $-$ flat, xla:random, lr 1e-3", r"$\tau$", sens(ebr, "hierarchical-vs-flat", 8), sens(ebr, "hierarchical-vs-flat", 32), "8"),
+    (r"\S5", "contention-edge $-$ flat, xla:random, lr 1e-3", r"$\tau$", sens(ebr, "hardware-vs-flat", 8), sens(ebr, "hardware-vs-flat", 32), "8"),
+    (r"\S5", "contention-edge@1e-3 $-$ flat@LR*, xla:default (6e P1)", r"$\tau$", reg(e6["P1_hardware_minus_flat_at_lr_star"]), NA, "8"),
+    (r"\S5", "contention-edge $-$ flat, both LR-tuned, xla:default (6f)", r"$\tau$", reg(f6["Q1_hardware_at_lr_star_hw_minus_flat_at_lr_star_flat"]), NA, "8"),
+    (r"\S5", "contention-edge $-$ flat, lr 1e-4, nlp:default (6d amended)", r"$\tau$", reg(d6["A_P1_hardware1e-4_minus_flat1e-4"]), NA, "8"),
+    (r"\S5", "hierarchical $-$ flat, CONV, lr 1e-3 (R0)", "Top-1", two(r0["contrasts"]["b8:hierarchical-flat:conv"]), two(r0["contrasts"]["b32:hierarchical-flat:conv"]), "32"),
+    (r"\S5", "contention-edge $-$ flat, CONV, lr 1e-3 (R0)", "Top-1", two(r0["contrasts"]["b8:hardware-flat:conv"]), two(r0["contrasts"]["b32:hardware-flat:conv"]), "32"),
+] + [(r"\S7", f"{chk}: {con}", "Top-1", b[:2], a[:2], "32") for chk, con, lr, n, a, b, stat in ROB]
+lines = [r"\begin{tabular}{lllcccccc}", r"\toprule",
+         r" & & & \multicolumn{2}{c}{Eval batch 8} & \multicolumn{2}{c}{Eval batch 32} & \\",
+         r"\cmidrule(lr){4-5}\cmidrule(lr){6-7}",
+         r"Section & Contrast & Metric & $\Delta$ & $p$ & $\Delta$ & $p$ & Primary \\", r"\midrule"]
+for sec, con, met, b8, b32, rb in EB:
+    lines.append(f"{sec} & {con} & {met} & {b8[0]} & {b8[1]} & {b32[0]} & {b32[1]} & {rb} \\\\")
+lines += [r"\bottomrule", r"\end{tabular}"]
+open(f"{TAB}/appendix_eval_batch.tex", "w").write(
+    "% Generated by scripts/paper_figures.py from the eval_batch_sensitivity, phase6e/6f/6d, r0 and §7 sources.\n"
+    "% -- = not scored at that batch (6e/6f/6d checkpoints were evaluated at their registered batch only).\n"
+    "% Primary = the batch the main text reports (registered for every preregistered or declared contrast).\n"
+    + "\n".join(lines) + "\n")
 
 # ── MDE table ──────────────────────────────────────────────────────────────────────────────
 NS, SIG = [3, 5, 7, 10, 15, 20], [0.040, 0.055, 0.070]
@@ -158,7 +282,7 @@ open(f"{TAB}/hyperparameters.tex", "w").write(
     "% eval-batch exceptions from the Phase 2c/3 checkpoint args and phase8c_evaluate.py (O8, O19)\n"
     + "\n".join(lines) + "\n")
 
-print("figure: fig_k1_forest.pdf/png | tables: phase8c_arms, mde, audit_axes, hyperparameters")
+print("figure: fig_k1_forest.pdf/png | tables: phase8c_arms, capstone_robustness, appendix_eval_batch, mde, audit_axes, hyperparameters")
 print(f"audit: fail>=3 axes {fails3}/20 (ledger 17), pass axes 1-3 {pass13}/20 (ledger 0)")
 print("audit %F vs ledger mismatches:", mismatch or "none")
 print("hyperparameter keys missing:", [k for k in keep if k not in a] or "none")
