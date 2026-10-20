@@ -97,6 +97,10 @@ regenerated where possible.* **Status: NOT STARTED** (O1's check landed 2026-09-
 
 Each entry records a check, what it found, and what changed as a result.
 
+- **2026-10-19 — Outside review of the R5 wording (two points, both accepted).**
+  - (1) R5's CI [−0.081, −0.009] excludes zero while p = .056. Cause: the CI is a percentile bootstrap (narrow at n = 10), the p is the paired t; the matching t-interval is [−0.088, +0.002]. Fix: the text gives Δ, p, MDE; any CI is labelled by method; §4 says once that all CIs are percentile bootstrap.
+  - (2) "No difference detected" holds only at the registered batch 32; batch 8 is p = .003, same sign. Fix: "not detected at batch 32" with the batch-8 clause beside it in the ¶5 claim, ¶7 and §10; ¶5 is a third case of the pattern only with that clause. Desk, `r5_results.md` and outline updated.
+  *Lesson → Gate B: report the CI that matches the deciding test, or label it; check every verdict sentence for its batch qualifier.*
 - **2026-10-19 — Baseline strength vs published TPUGraphs results (O24 opened).**
   - Our tuned flat model is ~2× the TPUGraphs paper's baseline on xla (0.23 vs 0.12; 0.41 vs 0.19) but about half of TGraph on xla:default (0.48), and below TGraph's no-edges ablation on both xla collections. Protocols differ (CV + ensemble + TTA + 15× the epochs). Disclose and scope; no run can close this before the deadline.
   *Lesson → Gate A: "tuned" means tuned within our recipe; check absolute strength against the field before framing a paper around baseline strength.*
