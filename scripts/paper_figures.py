@@ -325,7 +325,7 @@ fig, ax = plt.subplots(figsize=(3.3, 2.0))
 ax.axvline(1e-3, color=MUTED, lw=0.6, ls=(0, (2, 2)))
 ax.text(1.08e-3, 0.005, "shared lr", color=MUTED, fontsize=6.5, ha="left", va="bottom")
 for label, curve, col, mk, dx in (("Flat", e6["flat_curve"], INK, "o", 0.94),
-                                   ("Hardware", f6["hardware_curve"], ACCENT, "s", 1.06)):
+                                   ("Contention-edge", f6["hardware_curve"], ACCENT, "s", 1.06)):
     x = np.array([float(l) for l in lrs])
     m = np.array([curve[l]["mean"] for l in lrs]); s = np.array([curve[l]["sd"] for l in lrs])
     for xi, l in zip(x, lrs):
@@ -366,7 +366,7 @@ def paired_panel(ax, arms, taus, labels):
 # decomposition panel moved to the appendix (option A). ¶6 / FIG-R4 test this result.
 xd = load("experiments/eval_batch_sensitivity_xla_default.json")["taus"]
 fig, ax = plt.subplots(figsize=(3.3, 2.0))
-v = paired_panel(ax, ["wide-baseline", "hierarchical", "hardware"], xd, ["Flat", "+ Hierarchy", "+ Hardware\nedges"])
+v = paired_panel(ax, ["wide-baseline", "hierarchical", "hardware"], xd, ["Flat", "+ Hierarchy", "+ Contention\nedges"])
 assert abs(v[0].mean() - 0.0327) < 5e-4 and abs(v[2].mean() - 0.1977) < 5e-4  # Desk §5 ¶5
 ax.text(0.02, 0.98, "xla:default, shared lr 1e-3", transform=ax.transAxes, color=MUTED, fontsize=6.5, ha="left", va="top")
 ax.set_ylim(0, 0.25)

@@ -84,8 +84,15 @@ def plot_phase5() -> None:
     ax.grid(True, axis="x", alpha=0.3)
     fig.tight_layout()
     out = FIG / "phase5_conv_failure.png"
-    fig.savefig(out, dpi=150); plt.close(fig)
+    fig.savefig(out, dpi=150)
     print(f"wrote {out.relative_to(ROOT)}")
+    # Paper version (FIG 4): same plot, title removed (the caption carries it).
+    ax.set_title(""); fig.tight_layout()
+    for ext in ("pdf", "png"):
+        paper_out = ROOT / "paper" / "figures" / f"fig_c1_conv_failure.{ext}"
+        fig.savefig(paper_out, dpi=250, **({"metadata": {"CreationDate": None}} if ext == "pdf" else {}))
+        print(f"wrote {paper_out.relative_to(ROOT)}")
+    plt.close(fig)
 
 
 def plot_phase4() -> None:
