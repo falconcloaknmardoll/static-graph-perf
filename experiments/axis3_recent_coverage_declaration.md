@@ -235,3 +235,10 @@ as written.*
       -- experiments/axis3_recent_coverage_declaration.md`. Its hash is also recorded in
       `DEFENSIBILITY.md` (O15 log).
 - [x] Log line added to the O15 entry in `DEFENSIBILITY.md`.
+
+## Amendment 1 (2026-10-28, before any listed paper was opened)
+
+Scoring did not take place Oct 19–22 because of the writing schedule. No listed PDF has been
+opened. The scoring window moves to Oct 28–29, and the evidence cutoff moves from Oct 23 to
+**Oct 29 23:59 ET**. Everything else in this declaration is unchanged. Papers not scored by the
+new cutoff are reported as "not scored (time)". The appendix discloses this amendment.
