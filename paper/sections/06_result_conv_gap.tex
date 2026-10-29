@@ -31,14 +31,12 @@ graphs poorly therefore faces a harder problem, not merely a failure of predicti
 
 \subsection{The physical reason}
 \label{sec:physical}
-In the 4 convolution-bearing validation graphs, every convolution has an arithmetic intensity between
-90 and 2,900 FLOPs/byte, all above the TPU v3 ridge. Every convolution is therefore compute-bound, and
-its runtime is set by how efficiently its tiling uses the MXU. A layout change can alter the tiling and
-with it the padding waste and the speed, and that tiling is exactly what the graph does not record.
-\TODO{FACT ERROR, fix in your words: erratum 9648419 (2026-10-13) says NOT every conv is above the
-ridge. Per op, 11--26\% of conv ops are below 137 FLOP/byte (1--16\% of MACs); per-op intensity spans
-3.8--11,810. Correct claim: conv work is predominantly compute-bound (74--89\% of ops, 84--99\% of MACs;
-MAC-weighted intensity 688--2,857). Source: experiments/phase8_mxu_misalignment.md, Erratum.}
+% Minimal edit (AI-worded, inserted at the first author's request 2026-10-29) per erratum 9648419.
+In the 4 convolution-bearing validation graphs, most convolution work lies above the TPU v3 ridge:
+74--89\% of convolution operations, carrying 84--99\% of their MACs, with MAC-weighted arithmetic
+intensity between 688 and 2,857 FLOPs/byte (Appendix~A). Most convolution time is therefore
+compute-bound, and set by how efficiently the tiling uses the MXU. A layout change can alter the tiling
+and with it the padding waste and the speed, and that tiling is exactly what the graph does not record.
 
 \subsection{Three simple static explanations fail}
 \label{sec:static-fail}
