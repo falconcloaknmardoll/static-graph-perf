@@ -173,6 +173,14 @@ Each entry records a check, what it found, and what changed as a result.
   - **Open (the first author's call):** FIG-R1 still shows only the lr-1e-3 result. Option: add a dashed line
     for flat at its tuned LR (τ 0.2255) so the figure shows the gap closing on its own.
 
+- **2026-10-29 — O15: Frame B Axis 3 scoring DONE → 0 of 10 run a significance test.** the first author scored
+  all 10 papers on 2026-10-28 (Amendment 1 window, 4c400ff) in the Claude Doc sheet; copied verbatim
+  into `experiments/axis3_recent_coverage_scores.md`. Counts: P 0 · ∂ 0 · F 10 · N/A 0 · not
+  obtained 0 · not scored 0; n = 10, k = 0. §8 sentence = declaration §6 "0 of n" option, inserted
+  into `paper/sections/08_audit.tex`; §8.4 counter-example slot removed (no P paper). Minutes spent
+  were not recorded. Appendix still owes: per-paper table (title, venue, year, evidence), B8–B10
+  clustering (one group), N/A count (0), "most-cited *in this frame*" (2–16 citations), §7 blindness
+  statement verbatim, Amendment 1. Never merged into the 20.
 - **2026-10-12 — O15: scoring sheet ready; the first author scores Oct 19–22.**
   - **Working sheet:** Claude Doc "Axis 3 scoring sheet — Frame B (10 papers)"
     (https://claude.ai/code/artifact/66007727-813a-47d6-9fb1-10a96b0dd6e2). It has one table per
