@@ -42,22 +42,202 @@
 % C (protocol and robustness), D (audit).
 \section{Result I: decomposition and per-graph checks}
 \label{app:result1}
-% lr-1e-3 decomposition (hierarchy ~70% + edge increment, BH), Top-K tables, inception_v3, FIG-R2, FIG-C2.
-\TODO{Result I extras}
+% Prose drafted by Claude at the first author's request: revise as needed. Sources:
+% experiments/phase6b_confound_checks_b8.md, topk_slowdown_*.md, phase8_mxu_misalignment.md (+ erratum).
+Everything in this appendix is at the shared learning rate of 1e-3 unless stated. Section~5.4 of the main
+text shows that the xla:default gains below come from an untuned flat baseline, so they describe how the
+apparent win is built, not a gain that survives tuning.
+
+\paragraph{Decomposition of the xla:default gain.} At lr 1e-3 and evaluation batch 8, the hierarchical
+model improves on flat by $\Delta\tau = +0.116$ and the contention-edge model improves on the hierarchical
+model by a further $+0.049$, for the total of $+0.165$. Hierarchy therefore accounts for about 70\% of the
+apparent gain. All three paired contrasts survive Benjamini--Hochberg correction (adjusted $p = .0029$ for
+hierarchical $-$ flat, $.030$ for contention-edge $-$ hierarchical, $< .001$ for contention-edge $-$ flat),
+with the same verdicts at evaluation batch 32.
+
+\paragraph{Per-graph contribution.} One of the seven validation graphs carries much of the gain:
+inception\_v3 has $\Delta\tau = +0.550$ (contention-edge $-$ flat, mean over seeds), while the other six
+average $+0.101$. Two graphs move the other way (mlperf\_bert $-0.046$, unet\_3d $-0.018$). At evaluation
+batch 32 the numbers are $+0.568$ and $+0.090$; the share carried by inception\_v3 does not change
+materially.
+
+\paragraph{Top-$K$ slowdown.} Table~\ref{tab:topk} gives the Top-$K$ contrasts for every collection.
+On xla:random no structured model differs from flat at any $K$. On xla:default at lr 1e-3 both structured
+models land closer to the optimum at every $K$; with both arms tuned, no difference is significant at any
+$K$. On nlp:random the contention-edge model is worse at $K = 5$ and 10.
+
+\begin{table*}[t]
+\caption{Top-$K$ slowdown contrasts (structured arm $-$ flat; mean paired difference over 5 seeds, with
+paired two-sided $t$-test $p$ in brackets; evaluation batch 8). Negative values mean the structured arm's
+top-$K$ configurations are closer to the optimum. ``Both tuned'' uses each arm's best learning rate
+(1e-4 for both).}
+\label{tab:topk}
+\centering
+\small
+\input{tables/appendix_topk}
+\end{table*}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.75\columnwidth]{figures/fig_r2_xla_random_paired.pdf}
+\caption{xla:random, lr 1e-3: validation $\tau$ of the flat and hierarchical models for the five paired
+seeds (grey lines) with mean $\pm$ std (black; evaluation batch 8). The hierarchical model is lower on
+every seed ($\Delta\tau = -0.0235$, $p = .07$).}
+\label{fig:app-r2}
+\end{figure}
+
+\paragraph{Roofline position of convolution operations.} Figure~\ref{fig:app-roofline} places every
+convolution operation in the four convolution-bearing xla validation graphs on the roofline plane. Most
+convolution work is compute-bound: 74--89\% of operations and 84--99\% of MACs lie above the TPU v3 ridge,
+with MAC-weighted arithmetic intensity 688 (Inception-v3), 696 (ResNet-v1-50), 732 (ResNet-50) and
+2,857 (UNet-3D). Per-operation intensity spans 3.8 to 11,810 FLOPs/byte. Neither intensity nor packing
+utilisation orders the per-graph Top-1 slowdown (right panel).
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/appendix_roofline.png}
+\caption{Left: arithmetic intensity against MXU packing utilisation for every convolution operation in the
+four convolution-bearing xla validation graphs (marker size proportional to MACs; dashed line: TPU v3
+ridge, $\approx$137 FLOPs/byte). Right: per-graph Top-1 slowdown from Section~6.1 of the main text, with
+each graph's MAC-weighted intensity and utilisation.}
+\label{fig:app-roofline}
+\end{figure*}
 
 \section{Pre-registrations, amendments and the nlp:default failure}
 \label{app:prereg}
-% 6d (+ Amendments 1 and 2), 6e, 8c, 8d: what was registered, when (commit), and outcome.
-% 6d breach disclosure: what nlp:default tau was read, when, before Amendment 1.
-% Constant-output collapse, repro, lr diagnosis.
-\TODO{preregistrations and nlp:default}
+% Prose drafted by Claude at the first author's request: revise as needed. Hashes are the ANONYMIZED
+% commits (anon_tools/cited_hash_map.md); recheck after the final anon-repo rebuild.
+\paragraph{Registered analyses.} Table~\ref{tab:prereg} lists every pre-registered or declared analysis
+in the paper, the commit in the released repository that froze it, and its outcome. Each was committed
+before the runs it governs were evaluated; amendments were committed as dated additions, never as edits.
+``Declared'' marks a shorter, exploratory declaration made before computing.
+
+\begin{table*}[t]
+\caption{Pre-registered and declared analyses. Commits are in the anonymous repository; dates are commit
+dates (UTC).}
+\label{tab:prereg}
+\centering
+\scriptsize
+\begin{tabular}{p{1.6cm}p{1.9cm}p{5.0cm}p{6.6cm}}
+\toprule
+Analysis & Frozen (commit, date) & What it tests & Outcome \\
+\midrule
+8c (MXU features) & \texttt{f485ab2}, 2026-07-12 & per-node MXU encodings vs flat baseline on CONV Top-1, with scramble control (P4) & channel $-0.304$, BH-$p = .0032$; P4 passes; the prediction that channel alone would not help was wrong (\S7.1) \\
+8d (oracle) & \texttt{0c4844a}, 2026-08-20 & oracle ceiling P5: oracle $\leq$1.05 and better than channel & reached 1.048, gap n.s.\ ($p = .19$): P5 not confirmed; unsatisfiable at $n = 5$ (\S7.4) \\
+6d (nlp:default) & \texttt{1a79c3a}, 2026-09-22; Amendments 1--2: \texttt{79f81ec}, \texttt{5144bc1} & contention-edge vs flat on nlp:default & training failure under the registered protocol; amended lr 1e-4 run (exploratory) $-0.005$, $p = .53$ (\S5.5) \\
+6e (flat LR) & \texttt{24fa8a4}, 2026-09-27 & does the xla:default win survive tuning the flat LR (P1) & P1 fails: $-0.028$, $p = .14$ (\S5.4) \\
+6f (symmetric LR) & \texttt{9b11a96}, 2026-10-05 & both arms tuned on xla:default & no difference: $+0.002$, $p = .88$, MDE 0.037 (\S5.4) \\
+8e (8c LR) & \texttt{44267c7}, 2026-10-11; Amendment 1: \texttt{5defe35} & is the 8c gain robust to tuning both arms & not shown robust: $-0.033$, $p = .17$ (\S7.2) \\
+R0 (CONV Top-1) & \texttt{44267c7}, 2026-10-11; Amendments 1--3 (Amendment 3: \texttt{44dbd22}) & do hierarchy or contention edges change CONV Top-1 & no: $+0.022$ ($p = .77$), $+0.003$ ($p = .97$) (\S5.1) \\
+R3 (matched hardware) & \texttt{7f30775}, 2026-10-11 & P4 rerun with both arms on GPU & replicates: $-0.221$, $p = .0033$ (\S7.1) \\
+R4 (held-out families) & \texttt{561f73b}, 2026-10-11; Amendment 1 & tuned channel feature on 19 unseen conv instances & direction consistent, n.s.: $-0.113$, $p = .35$, MDE 0.39; sign flips at batch 8 (\S7.3) \\
+O19 (batch 8) & \texttt{5c19ad5}, 2026-10-14 & 8c/8d CONV Top-1 re-scored at evaluation batch 8 & 8c and P4 unchanged; 8d gap significant at batch 8 (Appendix~C) \\
+O21 (batch 8) & \texttt{af22be1}, 2026-10-14 & per-graph $\tau$ and tightening curve at batch 8 & no material change (Appendix~A) \\
+R5 (tuned oracle) & \texttt{58cb565}, 2026-10-16 & tuned oracle vs tuned baseline, 10 seeds & no headroom detected: $-0.043$, $p = .056$, MDE 0.062 (\S7.4) \\
+\bottomrule
+\end{tabular}
+\end{table*}
+\TODO{check every hash and date in the pre-registration table against the final anonymous repository}
+
+\paragraph{The nlp:default training failure.} Under the registered protocol (lr 1e-3), the
+contention-edge model collapses to a constant output early in the first epoch on nlp:default (seeds 42
+and 100). The ranking loss is pinned at the constant-score value (1.3256) from epoch 1, and the best
+checkpoint of seed 42 has 79.9\% of its parameters below $10^{-30}$ in magnitude, zero score variance on
+every batch and zero gradient in every layer. Constant scores make Kendall's $\tau$ undefined on every
+graph, so the logged $\tau = 0$ is not a measured correlation. The flat model trains normally on the same
+data. A deterministic reproduction shows that removing the auxiliary pooling losses does not prevent the
+collapse, while lowering the learning rate to 1e-4 does: the learning rate is the operative factor. We
+registered this as a training failure (Amendment~1); the registered predictions are untested, neither
+confirmed nor failed. The amended runs at lr 1e-4 for both arms are exploratory, because the rate was
+chosen after seeing diagnostic runs.
+
+\paragraph{Disclosure: results seen before Amendment~1.} The registration stated that no nlp:default
+result had been observed. While diagnosing the flat training loss, before Amendment~1 was written, the
+following validation $\tau$ values were read: every evaluation of contention-edge seed 42 and the first
+six of seed 100 (all logged as 0, i.e.\ undefined); the flat model's seed 42 (best 0.254) and two
+evaluations of seed 100 (0.167 and 0.336); and one diagnostic reproduction run (0.276). An implied
+difference of about $-0.25$ was noted at the time; it is not a registered result. Seeds 123, 456 and 789
+of both arms had not been run.
 
 \section{Protocol details and robustness}
 \label{app:robustness}
-% Hyperparameter table (tables/hyperparameters.tex), the five pipeline bug fixes, compute harness.
-% Every headline contrast at eval batch 8 and 32 (tables/appendix_eval_batch.tex),
-% tables/capstone_robustness.tex, O9 Top-K, 6e flat LR curve, FIG-M2, O17/O20/O22/O23.
-\TODO{protocol and robustness}
+% Prose drafted by Claude at the first author's request: revise as needed. Sources: DEFENSIBILITY.md
+% O17, O20-O23; phase6b_confound_checks_b8.md; tables generated by scripts/paper_figures.py.
+\paragraph{Training settings.} Table~\ref{tab:hparams} gives the shared training settings. Every arm uses
+the same settings apart from model-specific ones: width is set per model to match parameter counts
+(Section~4.2), and the pooling-loss weights apply only to models with DiffPool.
+Checkpoints are selected by validation $\tau$ at evaluation batch 8, evaluated every 5 epochs.
+
+\begin{table}[t]
+\caption{Training settings, read from a saved checkpoint's arguments (contention-edge arm, xla:default);
+the flat model's width is 172 for parameter matching. Learning rates other than 1e-3 apply only where the
+text says so.}
+\label{tab:hparams}
+\centering
+\small
+\input{tables/hyperparameters}
+\end{table}
+
+\paragraph{Evaluation batch.} All models use batch-statistic BatchNorm at evaluation, so scores depend on
+the evaluation batch. Table~\ref{tab:evalbatch} gives every headline contrast at batches 8 and 32;
+Table~\ref{tab:capstone-robust} collects the Section~7 checks with their realised MDEs. The batch changes a
+verdict in four places, each noted in the main text: the tuned channel feature (8e Q1), the 8d oracle gap
+and the tuned oracle (R5) are significant at batch 8 but not at the registered batch 32, and the sign of
+the held-out-family contrast (R4) flips.
+
+\begin{table*}[t]
+\caption{Every headline contrast at evaluation batch 8 and 32 (paired over seeds). ``Primary'' is the batch
+the main text reports, which is the registered batch for every pre-registered or declared contrast; -- =
+not scored at that batch.}
+\label{tab:evalbatch}
+\centering
+\scriptsize
+\input{tables/appendix_eval_batch}
+\end{table*}
+
+\begin{table*}[t]
+\caption{Section~7 robustness checks on convolution Top-1 slowdown ($\Delta < 0$: first arm closer to
+optimal). Realised MDE is computed from each contrast's observed paired standard deviation ($\alpha = .05$,
+power 0.8), not a pre-registered MDE. Leave-one-graph-out gives the range over the three drops and the
+largest $p$.}
+\label{tab:capstone-robust}
+\centering
+\scriptsize
+\input{tables/capstone_robustness}
+\end{table*}
+
+\paragraph{Number of evaluation graphs.} Figure~\ref{fig:app-tightening} resamples the flat model's
+per-graph $\tau$ on xla:default to show how the seed-to-seed spread of the aggregate shrinks as evaluation
+graphs are added. The median standard deviation is 0.0145 at 7 graphs and 0.0131 at 20 (evaluation batch 8;
+0.0152 and 0.0135 at batch 32), so adding graphs beyond seven barely tightens the average.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/appendix_tightening_b8.png}
+\caption{Seed-to-seed standard deviation of the aggregate $\tau$ against the number of evaluation graphs
+(flat model, xla:default, evaluation batch 8; median and 5th--95th percentile over resamples).}
+\label{fig:app-tightening}
+\end{figure}
+
+\paragraph{Other disclosures.}
+\begin{itemize}
+\item \emph{Training hardware.} All arms trained on one GPU except the lr-1e-3 scramble control and the
+  8d oracle, which trained on CPU during a GPU outage. Code, seeds and data order are identical, but the
+  arithmetic differs, so these arms pair less tightly. The scramble comparison was rerun with both arms on
+  GPU (R3) and replicates.
+\item \emph{Run-to-run variation.} The flat recipe of Section~5 and the baseline of Section~7 are the same
+  model on identical inputs, run by two training harnesses; their xla:random $\tau$ differs by 0.057
+  ($p = .08$). Every paired contrast is within one harness, so no verdict depends on this.
+\item \emph{Oracle checkpoints.} All five lr-1e-3 oracle checkpoints were selected at epoch 5, under the
+  same selection rule as every arm. The lr-3e-5 oracle (R5) peaks at epochs 15--40.
+\item \emph{Checkpoint selection on xla:random.} Phase-2c/3 checkpoints were selected at evaluation batch 32
+  and scored at batch 8; 12 of the 15 selected checkpoints are from the final epoch.
+\item \emph{Convolution subset.} The convolution test set of Section~7 is three graphs from two families,
+  because only these validation graphs are convolution-dominated and test runtimes are not public.
+\item \emph{Learning-rate scope.} Learning rates were tuned for two contrasts only (xla:default
+  connectivity and the Section~7 feature), selected on the scored validation set; in Section~7 both arms
+  chose the lowest rate in the grid.
+\end{itemize}
 
 \section{Audit: rubric, scores and coverage}
 \label{app:audit}
