@@ -32,10 +32,8 @@ therefore depends on something no model sees (Section~\ref{sec:result2}), while 
 fit can still be computed from the graph (Section~\ref{sec:capstone}).
 
 Whether MXU fit matters depends on the roofline. An operation whose arithmetic intensity (FLOPs per
-byte moved) exceeds the ridge point, about 137 FLOPs/byte on TPU v3 (123 TFLOP/s $\div$ 900 GB/s), is
+byte moved) exceeds the ridge point, about 137 FLOPs/byte on TPU v3 (123 TFLOP/s $\div$ 900 GB/s~\cite{googletpuv3}), is
 compute-bound, and its speed depends on how well it fills the MXU; below the ridge, memory bandwidth
 dominates. Operations that need the same resource also compete for it: convolutions and dot products
 share the core's two MXUs, and memory-moving operations (copy, transpose, reshape) share HBM bandwidth.
 Our contention-edge model encodes this competition explicitly (Section~\ref{sec:models}).
-\TODO{C11: the TPU v3 ridge $\approx$137 FLOP/byte is AI-verified only (VERIFICATION.md C11);
-human-check the vendor source before submission}
