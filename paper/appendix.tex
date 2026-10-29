@@ -1,5 +1,16 @@
 % Appendix, uploaded SEPARATELY from the main paper (MLSys CFP). Build: make appendix
 % Reviewers are not required to read it: nothing the main paper depends on goes here.
+% Main-paper references (Draft 3): Appendix A, B, C. Plan from GDoc Draft 3:
+%   A: lr-1e-3 decomposition (hierarchy ~70% + edge increment, BH-adjusted), Top-K tables at lr 1e-3
+%      and tuned, inception_v3 per-graph check, FIG-R2 (xla:random paired seeds), FIG-C2 (roofline).
+%   B: nlp:default amendment table + pre-registration breach disclosure (what was read, and when).
+%   C: protocol notes and robustness: every headline contrast at eval batch 8 and 32
+%      (appendix_eval_batch.tex), capstone_robustness.tex, checkpoint selection, CPU-trained arms (O17),
+%      run-to-run variation (O22), oracle epochs (O23), LR scope, CONV subset size (O20), FIG-M2
+%      stability curve (batch 8: median SD 0.0145 at 7 graphs, 0.0131 at 20; batch 32: 0.0152 / 0.0135),
+%      hyperparameters.tex.
+%   Audit (Frame B Axis 3, O15): B8-B10 author clustering, N/A count, "most-cited in this frame",
+%      the declaration's blindness statement, Amendment 1 (4c400ff; cite the anonymized hash).
 \documentclass{article}
 \usepackage{microtype}
 \usepackage{graphicx}

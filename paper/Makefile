@@ -10,7 +10,7 @@ appendix:
 
 # Everything still to resolve before submission.
 markers:
-	@grep -n 'TODO\|SLOT\|\[\[FIG\|\[\[DIAG' *.tex sections/*.tex || echo "no markers left"
+	@grep -n 'TODO\|SLOT\|REWRITE\|REVISE-IF-TIME\|\[\[FIG\|\[\[DIAG' *.tex sections/*.tex || echo "no markers left"
 
 clean:
 	latexmk -C main.tex appendix.tex

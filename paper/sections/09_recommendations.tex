@@ -1,0 +1,24 @@
+\section{Recommendations and Released Artifacts}
+\label{sec:recs}
+% AI-written (0% 4-gram overlap with the First Draft): rewrite the whole section.
+% Link = the ANONYMOUS repository only (never the live repo or wandb).
+\REWRITE
+Our results suggest six practices for comparing learned cost models. The first three correspond to
+audit Axes 1--3; the fourth catches what those three miss, as Section~\ref{sec:tuning} shows.
+\begin{enumerate}
+\item Report the seed-to-seed spread of the headline difference, and pair seeds across arms.
+\item Match parameter counts across arms, or report results at several matched sizes.
+\item Run a paired significance test on the headline comparison and report its effect size.
+\item Tune the baseline with the same budget as the proposed model, and report both learning-rate
+  curves.
+\item Compute the minimum detectable effect before running, choose seeds and evaluation graphs so the
+  claimed effect lies above it, and read every null against it.
+\item Report evaluation choices that can change a verdict, such as the evaluation batch under
+  batch-statistic normalisation.
+\end{enumerate}
+
+To support these practices we release, in an anonymous repository for review, the protocol, every
+pre-registration with its amendments and commit history, the 140-feature map naming each node feature
+(including those that carry convolution sizes), and \texttt{power\_analysis.py}. Given seed noise, the
+tool returns the MDE for $n$ paired seeds; given per-graph $\tau$, it estimates how fast the aggregate's
+spread shrinks as evaluation graphs are added. \TODO{anonymous repository URL}

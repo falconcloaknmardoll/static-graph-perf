@@ -1,15 +1,57 @@
-\section{Result III: What Current Evaluation Practice Can Resolve}
+\section{Result III: The Audit}
 \label{sec:audit}
-% Sitting 8 (Oct 6). Axis 3 check DONE Oct 5 (all 20 human-verified on Axis 3). Skeleton tab: "section 8 The audit".
 % Every percentage: "a purposive sample of 20", never "the field". No paper named as a failure.
 
-% P1 -- purposive sample of 20, five axes, quote-backed scores
+\subsection{Method}
+\label{sec:audit-method}
+We scored a purposive sample of 20 papers (2018--2026) that make a comparative architectural claim
+about a learned performance or cost model on five rigor axes: (1)~seed variance, (2)~parameter
+matching, (3)~significance testing, (4)~evaluation-set integrity, and (5)~effect size against noise and
+baseline strength. Each axis is scored pass, partial or fail, and every score is backed by a quoted
+passage.
 
-% P2 -- what was verified + how chosen, BEFORE any percentage (Axis 3: 20/20 human-verified; coverage: Frame A 8/30, Frame B 0/10)
+Papers were selected by snowball sampling from the lineage of learned cost model papers plus searches;
+the search terms were not logged and the selection protocol was written afterwards. All 20 papers were
+first scored by AI. Five were then human-verified on all five axes, which corrected 3 of 25 scores, all
+towards stricter; Axis 3 was human-verified for all 20 because the pre-screen failed every paper on it.
+The only score that became looser was TPUGraphs, from fail to partial, because it reports $\pm1\sigma$
+but runs no test. For the other 15 papers, Axes 1, 2, 4 and 5 are AI-prescreened only. To estimate
+coverage, 6 fixed Semantic Scholar queries returned 571 candidates; our sample includes 8 of the 30
+most-cited in-scope papers and 0 of the 10 most-cited from 2024--2026. That screening retrieves only 10
+of our 20 papers (it misses TPUGraphs), and in-scope papers outside the sample were not audited.
 
-% P3 -- no paper runs a significance test (20/20; Axis 3 = 19 F + 1 partial); 17/20 fail >=3 axes; the one money sentence (table: tables/audit_axes.tex)
+\subsection{No paper runs a significance test}
+\label{sec:audit-result}
+None of the 20 papers runs a significance test on its headline architectural claim, 17 (85\%) fail at
+least three of the five axes, and none passes Axes 1--3 together (Table~\ref{tab:audit}).
+\SLOT{Frame B sentence}
 
-% P4 -- link to the MDE table: small-n comparisons resolve only large effects
+\begin{table}[t]
+\caption{Audit outcome by rigor axis for 20 papers that make a comparative architectural claim about a
+learned performance or cost model (2018--2026). No paper passes Axes 1--3 together, and 17 of 20 fail
+at least three of the five axes.}
+\label{tab:audit}
+\centering
+\small
+\input{tables/audit_axes}
+\end{table}
 
-% P5 -- counter-examples, named: Kaufman et al., PerfVec, HLS-GNN
-\TODO{audit}
+\subsection{Typical practice cannot resolve effects of this size}
+\label{sec:audit-resolve}
+% REVISE-IF-TIME: low 4-gram overlap with the First Draft.
+These failures are not missing paperwork. No paper reports the seed-to-seed spread of its headline
+comparison, so readers cannot tell whether a gain exceeds the noise. By Table~\ref{tab:mde}, five seeds
+resolve only $\Delta\tau \approx$ 0.07--0.12, and the effects in Sections~\ref{sec:result1}
+and~\ref{sec:capstone} are smaller. Our own results show both failure modes. The DiffPool win came from
+capacity and vanished at matched size (Section~\ref{sec:protocol}). The $+0.165$ contention-edge result
+had five seeds, matched parameters and $p < .001$, passing Axes 1--3, yet only the pre-registered
+baseline check exposed it as a learning-rate handicap (Section~\ref{sec:tuning}). Passing every check
+the field currently applies is not enough.
+
+\subsection{Good practice already exists}
+\label{sec:audit-good}
+The problem is a habit, not a rule. Kaufman et al.\ report a case where their own learned model loses to
+the analytical baseline on the harder split of their tile-size task (6.3\% against 2.3\% mean
+error)~\cite{kaufman2021learned}. PerfVec declines a head-to-head state-of-the-art claim because the
+hardware differed~\cite{li2024learning}. HLS-GNN runs a five-seed protocol~\cite{wu2022highlevel}.
+\SLOT{any Frame B paper that scores a pass} Rigorous comparison is achievable within current practice.

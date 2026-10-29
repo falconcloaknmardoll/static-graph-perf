@@ -86,8 +86,14 @@ def plot_phase5() -> None:
     out = FIG / "phase5_conv_failure.png"
     fig.savefig(out, dpi=150)
     print(f"wrote {out.relative_to(ROOT)}")
-    # Paper version (FIG 4): same plot, title removed (the caption carries it).
-    ax.set_title(""); fig.tight_layout()
+    # Paper version (FIG 4): same plot at column width, title removed (the caption carries it).
+    ax.set_title(""); fig.set_size_inches(3.3, 2.3)
+    for t in ax.texts: t.set_fontsize(6.5)
+    ax.tick_params(labelsize=6.5)
+    ax.set_xlabel("Mean Top-1 slowdown (1.0 = optimal)", fontsize=7)
+    ax.legend(handles, list(FAM_COLOR.keys()), loc="lower right", fontsize=6, title="network family",
+              title_fontsize=6.5)
+    fig.tight_layout()
     for ext in ("pdf", "png"):
         paper_out = ROOT / "paper" / "figures" / f"fig_c1_conv_failure.{ext}"
         fig.savefig(paper_out, dpi=250, **({"metadata": {"CreationDate": None}} if ext == "pdf" else {}))

@@ -1,16 +1,71 @@
-\section{The Instrument: A Controlled, Power-Analysed Protocol}
+\section{The Instrument: Method and Experimental Setup}
 \label{sec:instrument}
-% Written in sitting 1 (Sep 28). Skeleton tab: "section 4 The instrument".
 
-% P1 -- protocol: parameter-matched arms, 5 paired seeds, paired tests, BH
+\subsection{Task, inputs and metrics}
+\label{sec:task}
+Each model ranks a graph's layout configurations by runtime, using TPUGraphs' official train/validation
+split for each collection. Models train with the ListMLE ranking loss~\cite{xia2008listwise} on up to
+128 sampled configurations per graph per epoch; validation scores every configuration. Every model
+receives the same static inputs: 140 features per node plus 18 layout features per configurable node.
+These already include the convolution sizes (\texttt{shape\_dimensions} and \texttt{window\_size}) and
+the kernel layout (layout features 12--17); we took the feature names from Google's featurizer source
+and checked them against the data. The models therefore lack only the compiler's tiling and an
+explicit MXU-utilisation number. We report Kendall's $\tau$, computed per graph and averaged across
+graphs~\cite{kendall1938measure}, and Top-$K$ slowdown, the autotuner-facing metric: the best true
+runtime among the model's top $K$ configurations divided by the best runtime overall.
 
-% P2 -- why: seed noise > effects; the 73%-more-parameters artifact
+\subsection{The three models}
+\label{sec:models}
+Each model adds one layer of structure while the parameter count stays roughly constant. The flat
+baseline is GraphSAGE~\cite{hamilton2017inductive}: three SAGEConv layers with residual connections,
+read out as a mean over all nodes plus a separate mean over configurable nodes, with hidden width 172
+(236,157 parameters). The hierarchical model replaces flat message passing with two DiffPool pooling
+stages~\cite{ying2018hierarchical}, the first clustering to at most 128 clusters (235,553 parameters).
+The contention-edge model adds edge-aware GINE convolutions over the data-flow
+edges~\cite{hu2019strategies} plus two edge types that link nearby operations competing for the matrix
+unit (window of 5) and for memory bandwidth (window of 15) (234,120 parameters). These models are the
+instruments being compared, not contributions.
 
-% P3 -- MDE at n=5 is 0.066-0.116 (table: tables/mde.tex)
+\subsection{The protocol}
+\label{sec:protocol}
+Every comparison uses parameter-matched arms (within 0.3\% for flat and hierarchical, 0.9\% for
+contention-edge), the same five seeds for every arm, and paired two-sided $t$-tests on
+per-graph-averaged $\tau$ over held-out graphs, with Wilcoxon signed-rank tests as a direction check
+and Benjamini--Hochberg correction across the three-arm family~\cite{benjamini1995controlling}. Each
+control has a job. Seed-to-seed spread in $\tau$, about 0.04 to 0.07, is as large as the effects being
+measured, so arms are paired by seed to cancel shared noise. Capacity differences fake wins: our
+original ``DiffPool beats flat'' result came from 73\% more parameters (235,553 vs 136,321) and
+vanished once the flat baseline was matched (Section~\ref{sec:xla-random}).
 
-% P4 -- 7 validation graphs; tightening curve (flat per-graph tau scored at eval batch 32, O21)
-% [[FIG-M2 | HAVE: power_tightening_curve.png]]
+\subsection{Resolution of the design}
+\label{sec:resolution}
+With five seeds, the smallest detectable change in $\tau$ is 0.066--0.116 (Table~\ref{tab:mde}).
+Effects below that are invisible to this design, not necessarily absent, and every null in this paper
+is read against its minimum detectable effect (MDE). Detecting a change of 0.05 at a worst-case
+$\sigma$ of 0.070 would need 18 seeds; because resolution improves only with the square root of the
+seed count, the seed budgets common in this literature cannot resolve differences of the size papers
+claim. The number of evaluation graphs matters less for the average: on xla:default, the bootstrap
+standard deviation of $\tau$ is already stable at 7 graphs (median 0.0145, against 0.0131 at 20;
+Appendix~C). It matters more for the 3-graph convolution subset in Section~\ref{sec:capstone}, which
+we test with leave-one-graph-out and held-out-family checks.
 
-% P5 -- batch-statistic BatchNorm (eval batch 8 for tau; 32 for S7 Top-1 and Phase 2c/3 selection;
-%       one sentence + appendix table, see outline S4 eval-batch block) and one shared LR  \SLOT{O1} \SLOT{O19}
-\TODO{instrument}
+\begin{table}[t]
+\caption{Minimum detectable change in Kendall's $\tau$ (paired $t$-test, $\alpha = 0.05$, power 0.8)
+by number of seeds $n$ and seed-to-seed standard deviation $\sigma$ of $\Delta\tau$.}
+\label{tab:mde}
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\input{tables/mde}
+\end{table}
+
+\subsection{Evaluation choices}
+\label{sec:eval-choices}
+Two choices shape the numbers. First, all models use BatchNorm with batch statistics, so a
+configuration's score depends on the evaluation batch it is scored in. $\tau$ comparisons use
+evaluation batch 8; the Top-1 analyses in Sections~\ref{sec:result2} and~\ref{sec:capstone} use batch
+32, their registered batch. Appendix~C gives every headline contrast at both, and the text notes each
+case where the batch changes a verdict. Second, all arms train at one shared learning rate of 1e-3,
+which matches them but does not tune them; Sections~\ref{sec:result1} and~\ref{sec:capstone} report the
+pre-registered checks that tune each arm. The exception is nlp:default, whose amended runs use 1e-4 for
+both arms (Section~\ref{sec:nlp-default}).

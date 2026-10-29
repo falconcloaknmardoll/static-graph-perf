@@ -1,17 +1,51 @@
 \section{Introduction}
 \label{sec:intro}
-% Written in sitting 10 (Oct 8), after all results sections exist.
-% Each marker = one paragraph; its claim line is in the Paragraph skeleton tab.
+% Ported from GDoc Draft 3 (t.cz6lqsdkqrph).
 
-% P1 -- why layout choice matters; learned cost models avoid timing every candidate
+XLA, the compiler behind Google's TPUs, must decide how to arrange each neural network's tensors in
+memory. There are many valid arrangements, called layout configurations, and they run at measurably
+different speeds on real hardware. Timing every candidate is slow and the search space is too large to
+try exhaustively, so a learned cost model ranks the candidates from the program's graph instead of
+keeping the compiler in the loop~\cite{phothilimthana2023tpugraphs,kaufman2021learned}. Layout matters
+for a physical reason: the TPU's matrix multiply unit (MXU) works on fixed-size tiles, so the way data
+is laid out changes how efficiently the MXU is used~\cite{jouppi2020domainspecific}.
 
-% P2 -- progress is reported as architecture comparisons
+Progress on these models is reported almost entirely as architecture comparisons: model X ranks
+configurations better than model Y. GNNs over computation graphs have become the dominant
+approach~\cite{phothilimthana2023tpugraphs,kaufman2021learned,deng2024polynormer}. Such comparisons
+cannot show whether a gain is real unless they control for seed noise, model capacity and baseline
+strength. In an audit of 20 papers that make these comparisons, none runs a significance test on its
+headline claim, and 17 of 20 fail at least three of five rigor axes (Section~\ref{sec:audit}).
 
-% P3 -- audit teaser (purposive sample of 20; no names; not "the field")
+We therefore ask a different question: how much of a configuration's speed is knowable from the static
+graph the predictor sees, and how much lives only in the compiler's dynamic tiling search? We answer it
+at three levels:
+\begin{enumerate}
+\item Does the static graph carry the performance information, and does that depend on the workload?
+\item Where, physically, does it fall short?
+\item Can current evaluation practice detect effects of this size?
+\end{enumerate}
 
-% P4 -- the reframe: what the static graph determines
+% AI-worded (6% 4-gram overlap with the First Draft): rewrite.
+\REWRITE
+At each level the answer turns on baseline strength. First, added structure gives no detectable gain
+over a matched flat model in any of the four collections once the baseline is tuned: on xla:default, an
+apparent $+0.165$ $\tau$ at a shared learning rate falls to $+0.002$ ($p = .88$). Second, convolution
+graphs are $2.8\times$ more layout-sensitive than other graphs in measured runtimes, but a per-node MXU
+feature that narrows convolution slowdown from 1.42 to 1.12 at the shared rate leaves a gain below
+detection ($-0.03$, $p = .17$) against a tuned baseline. Third, a result can pass seed,
+parameter-matching and significance checks and still be a baseline artefact, as our own $+0.165$ did.
+All results are on TPUGraphs' validation graphs with runtimes Google measured; we ran no TPU.
 
-% P5 -- what we find, one number per level  \SLOT{6e headline}
-
-% Contribution list (itemize, four bullets)
-\TODO{introduction}
+% AI-worded (0% 4-gram overlap with the First Draft): rewrite.
+\REWRITE
+Our contributions are:
+\begin{itemize}
+\item A controlled, power-analysed protocol for comparing learned cost models, applied to all four
+  TPUGraphs layout collections.
+\item A model-free measurement that localises the information gap to convolution on the MXU.
+\item A pre-registered test of whether per-node MXU geometry closes that gap, with a scramble control, a
+  tuned-baseline check and an oracle ceiling.
+\item An audit of evaluation practice, concrete recommendations (Section~\ref{sec:recs}), and the
+  released protocol and power-analysis tool.
+\end{itemize}

@@ -1,11 +1,42 @@
 \section{Background}
 \label{sec:background}
-% Written in sitting 9 (Oct 7). Skeleton tab: "section 2 Background + section 3 Matrix unit".
-% This section = skeleton P1, P2, P6 (the problem and the field). P3-P5 are in 03_hardware.tex.
 
-% P1 -- XLA layout choice; ranking, not runtime prediction ("cost model")
+\subsection{The layout problem}
+\label{sec:layout-problem}
+A layout is the order of a tensor's dimensions in memory, for example \{1,0,2\} rather than \{0,1,2\}.
+In TPUGraphs, XLA chooses layouts only at configurable nodes (convolution, dot and reshape), whose TPU
+implementations are the most constrained, and derives every other node's layout from those
+choices~\cite{phothilimthana2023tpugraphs}. A layout configuration is one set of choices across all
+configurable nodes of a graph. The choices interact: when two connected operations use different
+layouts, the compiler inserts a copy (a transpose) between them, so nodes cannot be optimised
+independently and a whole-graph model is needed. XLA's autotuner finds 10--20\% speedups on production
+models, but every candidate must be compiled and timed. A learned cost model therefore ranks the
+candidates from the graph so that only the top few are timed~\cite{kaufman2021learned}. The graph is
+the HLO input to XLA's layout-assignment step: nodes are tensor operations and edges are data flow.
 
-% P2 -- the four collections; TPUGraphs val tau 0.19 vs 0.12 (never 0.34 vs 0.12)
+\subsection{The four collections}
+\label{sec:collections}
+TPUGraphs' layout data come in four collections: two graph sources crossed with two sampling schemes.
+The xla graphs come from the XLA regression benchmark and MLPerf, covering vision, NLP, speech and
+recommendation; the nlp graphs are BERT variants that differ in layers, attention heads and hidden
+size. Random sampling draws diverse candidates with widely spread runtimes, while default sampling runs
+a genetic search from the compiler's default layout and yields similar candidates. Default is harder
+than random~\cite{phothilimthana2023tpugraphs}, and we find xla harder than nlp
+(Section~\ref{sec:result1}). Google measured every runtime on one TPU v3 core. The xla collections have
+7 validation graphs each and the nlp collections 20; the released test files carry no runtimes, so
+every number in this paper is on validation graphs.
 
-% P6 -- state of practice (related work lives here; section 8 does the evaluation)
-\TODO{background}
+\subsection{Related work}
+\label{sec:related}
+Learned cost models span tensor-program models (AutoTVM~\cite{chen2018learning},
+TenSet~\cite{zheng2021tenset}, TLP~\cite{zhai2022deep}), basic-block throughput models
+(Ithemal~\cite{mendis2019ithemal}, GRANITE~\cite{sykora2022granite}, with the analytical
+Facile~\cite{abel2023facile} as counterpoint), whole-graph models on TPU and XLA (Kaufman et
+al.~\cite{kaufman2021learned}, TPUGraphs~\cite{phothilimthana2023tpugraphs},
+TGraph~\cite{khizbullin2024graph}, Polynormer~\cite{deng2024polynormer},
+PerfSAGE~\cite{chai2023perfsage}) and program representations (ProGraML~\cite{cummins2021programl}).
+Recent directions include NeuSight~\cite{lee2024forecasting}, compiler world
+models~\cite{pan2026toward}, regression language models~\cite{akhauri2025regression} and
+Omniwise~\cite{wang2025omniwise}. These works report progress as one model beating another. We do not
+propose a new model; we test how much any static-graph model can know, and Section~\ref{sec:audit}
+audits how such comparisons are tested.

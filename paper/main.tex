@@ -13,16 +13,19 @@
 \usepackage{mlsys2025}
 
 % Drafting markers (see the Paragraph skeleton tab). Remove all before submission:
-%   grep -n 'TODO\|SLOT\|\[\[FIG\|\[\[DIAG' paper/*.tex paper/sections/*.tex
+%   grep -n 'TODO\|SLOT\|REWRITE\|REVISE-IF-TIME\|\[\[FIG\|\[\[DIAG' paper/*.tex paper/sections/*.tex
 \newcommand{\TODO}[1]{\textcolor{red}{[TODO: #1]}}
 \newcommand{\SLOT}[1]{\textcolor{blue}{[SLOT: #1]}}
+% Draft 3 text that is AI-worded (MLSys LLM policy): the first author rewrites it in their own words.
+% \REWRITE marks a passage that must be rewritten; "% REVISE-IF-TIME" comments mark low-overlap paragraphs.
+\newcommand{\REWRITE}{\textcolor{orange}{[REWRITE in own words]}~}
 
-\mlsystitlerunning{What Do Static Computation Graphs Know About TPU Performance?}
+\mlsystitlerunning{What Do Static Computational Graphs Know About Hardware Performance?}
 
 \begin{document}
 
 \twocolumn[
-\mlsystitle{What Do Static Computation Graphs Know About Hardware Performance?\\
+\mlsystitle{What Do Static Computational Graphs Know About Hardware Performance?\\
 An Information-Content Study of Learned TPU Layout Cost Models}
 
 % Real names/affiliations go in only at camera-ready; the style prints
@@ -38,9 +41,21 @@ An Information-Content Study of Learned TPU Layout Cost Models}
 \vskip 0.3in
 
 \begin{abstract}
-% One paragraph, 4--6 sentences (MLSys guidance). Written LAST, by compressing the
-% finished sections. See the skeleton tab: "Abstract, section 9, section 10".
-\TODO{abstract}
+% Ported from GDoc Draft 3. AI-worded (6-10% 4-gram overlap with the First Draft): rewrite.
+\REWRITE
+Learned cost models rank compiler configurations, but it is unclear how much of a configuration's
+speed can be read from the static graph alone. We study this question on the TPUGraphs XLA layout
+collections, using parameter-matched GNNs, five paired seeds and paired significance tests. Two
+apparent gains shrink below what our design can detect once the flat baseline's learning rate is
+tuned. Hierarchy plus hardware-contention edges raise Kendall's $\tau$ on xla:default by $+0.165$
+($p < .001$) at a shared learning rate, but by only $+0.002$ ($p = .88$) with both arms tuned. A
+per-node MXU-utilisation feature cuts convolution Top-1 slowdown by 0.30 at the shared rate, but by
+only 0.03 ($p = .17$) against a tuned baseline. Measured runtimes show, with no model involved, that
+convolution graphs are $2.8\times$ more layout-sensitive than other graphs, yet graph-level static
+features do not predict this sensitivity. An audit of 20 papers that make comparative claims about
+learned cost models finds that none runs a significance test on its headline claim. Our own $+0.165$
+result shows that passing seed, parameter-matching and significance checks is not enough without a
+tuned baseline. We release the protocol and a power-analysis tool.
 \end{abstract}
 ]
 
@@ -48,13 +63,14 @@ An Information-Content Study of Learned TPU Layout Cost Models}
 
 \input{sections/01_introduction}
 \input{sections/02_background}
-\input{sections/03_hardware}
+\input{sections/03_layout_tpu}
 \input{sections/04_instrument}
 \input{sections/05_result_distribution}
 \input{sections/06_result_conv_gap}
 \input{sections/07_capstone}
 \input{sections/08_audit}
-\input{sections/09_release_conclusion}
+\input{sections/09_recommendations}
+\input{sections/10_limitations_conclusion}
 
 % No acknowledgments in the submission (anonymity). Add at camera-ready.
 

@@ -1,0 +1,34 @@
+\section{Limitations and Conclusion}
+\label{sec:conclusion}
+
+\subsection{Limitations}
+\label{sec:limitations}
+\paragraph{Data and hardware.} We use one benchmark and its validation split. xla:default has 7
+validation graphs and the Section~\ref{sec:capstone} convolution subset only 3. We ran no TPU, so
+results describe ranking quality on TPUGraphs' measured runtimes, not end-to-end compiler speedups.
+
+\paragraph{Statistics and tuning.} With five seeds, the MDE is 0.037--0.116 for the main contrasts and
+up to 0.39 for small subsets, and two runs of the identical flat recipe differ by 0.057 $\tau$
+($p = .08$), so a null means ``not detected above the MDE''. Learning rates were tuned for two contrasts
+only, picked on the scored validation set, and in Section~\ref{sec:capstone} the best rate sat at the
+grid edge; ``tuned'' means tuned within this recipe, and the other collections are compared at one
+shared rate.
+
+\paragraph{Baseline strength and measurement.} Our tuned flat model scores 1.2--2.1$\times$ the
+TPUGraphs baseline on all four collections but below TGraph on all four (xla:default 0.23 against 0.48),
+and below TGraph's no-edges ablation on both xla collections, under different protocols. Our findings
+hold for a matched, mid-strength GNN; whether they hold at state-of-the-art strength is untested. Scores
+depend on the evaluation batch, and the lr-1e-3 scramble and oracle arms trained on CPU while all others
+trained on GPU; the text flags each verdict the batch changes. The audit covers a purposive sample in
+which 5 papers were fully human-verified and all 20 on Axis 3, so it describes this sample, not the
+whole field.
+
+\subsection{Conclusion}
+Static graphs carry less learnable advantage than the shared-learning-rate comparisons suggest: both
+apparent gains shrank below detection once the baseline was tuned (connectivity $+0.165$ to $+0.002$
+$\tau$; MXU feature $-0.30$ to $-0.03$ convolution Top-1). The hardware does impose a real limit on
+convolution graphs, which are $2.8\times$ more layout-sensitive in measured runtimes, yet a tuned flat
+model already brings their Top-1 slowdown from 1.42 to 1.09. A comparison can pass seed,
+parameter-matching and significance checks and still be a baseline artefact, and none of the 20 audited
+papers runs the significance test. The open question is not how to close a known gap but whether, after
+tuning, any residual gap exists at all.
