@@ -131,7 +131,7 @@ CONV = phase8c_evaluate.CONV_GRAPHS
 
 
 def fp(p):
-    return "<.001" if p < 0.001 else (f"{p:.4f}" if p < 0.01 else f"{p:.3f}").lstrip("0")
+    return "$<$.001" if p < 0.001 else (f"{p:.4f}" if p < 0.01 else f"{p:.3f}").lstrip("0")
 
 
 def loo(raw):
