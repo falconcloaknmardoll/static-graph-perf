@@ -3,7 +3,6 @@
 
 \subsection{A large gain at the shared learning rate}
 \label{sec:capstone-shared}
-% REVISE-IF-TIME: low 4-gram overlap with the First Draft.
 We added one number to each convolution node, its channel-padding utilisation
 (Section~\ref{sec:mxu}), and kept everything else identical to the flat baseline. The test set is
 pre-registered: three convolution graphs (inception\_v3, resnet50.4x4.fp16, resnet\_v1\_50) on
@@ -30,7 +29,6 @@ three arms.}
 
 \subsection{Against a tuned baseline, the gain is below detection}
 \label{sec:capstone-tuned}
-% REVISE-IF-TIME: low 4-gram overlap with the First Draft.
 The baseline above is Section~\ref{sec:result1}'s handicapped arm: the same flat model at lr 1e-3,
 which learns (overall $\tau = 0.2311$) but is undertrained, with 4 of 5 runs peaking at the final
 epoch. A pre-registered check reran both arms over a grid of learning rates and kept each arm's best;

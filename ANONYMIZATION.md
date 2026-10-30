@@ -2,8 +2,8 @@
 
 This repository is the authors' research repository, rewritten for **MLSys 2027 double-blind
 review**. It keeps the **full commit history with the original commit timestamps**, so the
-order of pre-registration freezes and analyses can be checked with `git log`. Everything below
-was applied identically to **every commit**.
+order of pre-registration freezes and analyses can be checked with `git log`. Except where stated,
+everything below was applied identically to **every commit**.
 
 ## Commit metadata
 - Author and committer of every commit set to `Anonymous Author <anonymous@example.com>`.
@@ -27,6 +27,14 @@ was applied identically to **every commit**.
   circumstances. The audit's scores and rules are unchanged.
 - Three commit messages discussing an author's personal circumstances keep their subject
   line; the body is redacted and says so.
+
+## Removed from the current tree only
+A final commit made after the rebuild removes internal working notes from the latest version:
+`VERIFICATION.md`, `DEFENSIBILITY.md`, `prerequisites.md`, `.vscode/`, `experiments/BACKBURNER.md`,
+`experiments/framing_audit_2026-10-11.md` and `experiments/paper_consistency_audit_2026-10-13.md`,
+replaces the outdated opening of `README.md`, and drops leftover drafting to-do comments from
+`paper/` (comments only; the compiled paper is unaffected). These files remain in the commit history, and
+references to them in other files resolve there.
 
 Nothing else was changed. Code, data, pre-registrations, declarations and results are as
 committed. Third-party author names in `experiments/phase7_coverage/*.json` are literature

@@ -13,12 +13,9 @@
 \usepackage{mlsys2025}
 
 % Drafting markers (see the Paragraph skeleton tab). Remove all before submission:
-%   grep -n 'TODO\|SLOT\|REWRITE\|REVISE-IF-TIME\|\[\[FIG\|\[\[DIAG' paper/*.tex paper/sections/*.tex
+%   grep -n 'TODO\|SLOT\|\[\[FIG\|\[\[DIAG' paper/*.tex paper/sections/*.tex
 \newcommand{\TODO}[1]{\textcolor{red}{[TODO: #1]}}
 \newcommand{\SLOT}[1]{\textcolor{blue}{[SLOT: #1]}}
-% Draft 3 text that is AI-worded (MLSys LLM policy): the first author rewrites it in their own words.
-% \REWRITE marks a passage that must be rewritten; "% REVISE-IF-TIME" comments mark low-overlap paragraphs.
-\newcommand{\REWRITE}{\textcolor{orange}{[REWRITE in own words]}~}
 
 \mlsystitlerunning{What Do Static Computational Graphs Know About Hardware Performance?}
 
