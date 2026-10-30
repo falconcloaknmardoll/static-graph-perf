@@ -22,7 +22,7 @@ import phase8c_evaluate
 
 FIG, TAB = "paper/figures", "paper/tables"
 os.makedirs(FIG, exist_ok=True); os.makedirs(TAB, exist_ok=True)
-INK, MUTED, GRID, ACCENT = "#1f2328", "#6e7781", "#d0d7de", "#c2410c"
+INK, MUTED, GRID, ACCENT, BLUE = "#1f2328", "#6e7781", "#d0d7de", "#c2410c", "#2563a8"
 plt.rcParams.update({"font.family": "serif", "font.size": 8, "axes.linewidth": 0.6,
                      "xtick.major.width": 0.6, "ytick.major.width": 0.6, "pdf.fonttype": 42})
 
@@ -75,7 +75,7 @@ fig, ax = plt.subplots(figsize=(3.4, 3.1))
 ax.axvline(1.0, color=MUTED, lw=0.6, ls=(0, (2, 2)))
 y, ticks, labels = n_rows - 1, [], []
 for gname, rows in groups:
-    ax.text(0.952, y, gname, fontsize=7, fontweight="bold", color=INK, ha="left", va="center")
+    ticks.append(y); labels.append(gname)
     y_top = y - 0.5
     y -= 1
     base_mean = np.mean(rows[0][1])
@@ -92,9 +92,12 @@ for gname, rows in groups:
         y -= 1
 ax.set_yticks(ticks)
 ax.set_yticklabels(labels)
-ax.set_xlabel("CONV Top-1 slowdown, eval batch 32")
+ax.set_xlabel("Top-1 slowdown, eval batch 32")
 ax.set_xlim(0.95, 1.56)
-ax.text(1.005, -0.75, "optimal", color=MUTED, fontsize=6.5, ha="left", va="center")
+ax.set_xticks([1.0, 1.2, 1.4]); ax.set_xticklabels(["1.0\n(optimal)", "1.2", "1.4"])
+for t, l in zip(ax.get_yticklabels(), labels):
+    if l == groups[0][0] or l == groups[1][0]:
+        t.set_fontweight("bold")
 for s in ("top", "right", "left"):
     ax.spines[s].set_visible(False)
 ax.tick_params(axis="y", length=0)
@@ -378,7 +381,7 @@ ax.set_xticks([float(l) for l in lrs]); ax.set_xticklabels(lrs)
 ax.minorticks_off()
 ax.set_xlabel("learning rate"); ax.set_ylabel("validation Kendall's τ")
 ax.set_ylim(0, 0.3)
-ax.legend(frameon=False, fontsize=7, loc="upper right")
+ax.legend(frameon=False, fontsize=7, loc="lower left")
 for s_ in ("top", "right"):
     ax.spines[s_].set_visible(False)
 fig.tight_layout(pad=0.3)
@@ -387,14 +390,15 @@ plt.close(fig)
 print("figure: fig_r4_lr_curves.pdf/png")
 
 
-def paired_panel(ax, arms, taus, labels):
-    """Seeds as grey connected dots (one line per seed), arm mean ± sd as black diamonds."""
+def paired_panel(ax, arms, taus, labels, cols):
+    """Seeds as grey connected dots (one line per seed), arm mean ± sd as diamonds in each arm's colour."""
     vals = [np.asarray(taus[a]["8"]) for a in arms]
     x = np.arange(len(arms))
     for seed_vals in np.column_stack(vals):
         ax.plot(x, seed_vals, color=MUTED, lw=0.5, alpha=0.6, marker="o", ms=2.2, zorder=1)
-    ax.errorbar(x, [v.mean() for v in vals], yerr=[v.std(ddof=1) for v in vals], fmt="D", color=INK,
-                ms=4, capsize=2, elinewidth=0.8, lw=0, zorder=3)
+    for xi, v, col in zip(x, vals, cols):
+        ax.errorbar(xi, v.mean(), yerr=v.std(ddof=1), fmt="D", color=col, ms=4.5, capsize=2.5,
+                    elinewidth=1.0, lw=0, zorder=3)
     ax.set_xticks(x); ax.set_xticklabels(labels)
     ax.set_xlim(-0.4, len(arms) - 0.6)
     ax.set_ylabel("validation Kendall's τ")
@@ -408,7 +412,7 @@ def paired_panel(ax, arms, taus, labels):
 # decomposition panel moved to the appendix (option A). ¶6 / FIG-R4 test this result.
 xd = load("experiments/eval_batch_sensitivity_xla_default.json")["taus"]
 fig, ax = plt.subplots(figsize=(3.3, 2.0))
-v = paired_panel(ax, ["wide-baseline", "hierarchical", "hardware"], xd, ["Flat", "+ Hierarchy", "+ Contention\nedges"])
+v = paired_panel(ax, ["wide-baseline", "hierarchical", "hardware"], xd, ["Flat", "+ Hierarchy", "+ Contention\nedges"], [INK, BLUE, ACCENT])
 assert abs(v[0].mean() - 0.0327) < 5e-4 and abs(v[2].mean() - 0.1977) < 5e-4  # Desk §5 ¶5
 ax.text(0.02, 0.98, "xla:default, shared lr 1e-3", transform=ax.transAxes, color=MUTED, fontsize=6.5, ha="left", va="top")
 ax.set_ylim(0, 0.25)
@@ -422,7 +426,7 @@ print("figure: fig_r1_xla_default_staircase.pdf/png")
 # Replaces experiments/figures/ablation_paired.png, which showed the batch-32 numbers (p = .22).
 xr = load("experiments/eval_batch_sensitivity_xla_random.json")
 fig, ax = plt.subplots(figsize=(2.4, 2.0))
-v = paired_panel(ax, ["wide-baseline", "hierarchical"], xr["taus"], ["Flat", "Hierarchy\n(DiffPool)"])
+v = paired_panel(ax, ["wide-baseline", "hierarchical"], xr["taus"], ["Flat", "Hierarchy\n(DiffPool)"], [INK, BLUE])
 c = xr["contrasts"]["hierarchical-vs-flat@b8"]
 assert abs((v[1] - v[0]).mean() - c["mean"]) < 1e-9 and abs(c["p"] - 0.0702) < 5e-4  # Desk §5 ¶2
 ax.text(0.02, 0.02, "xla:random", transform=ax.transAxes, color=MUTED, fontsize=6.5, ha="left", va="bottom")
@@ -432,6 +436,24 @@ fig.savefig(f"{FIG}/fig_r2_xla_random_paired.pdf", metadata={"CreationDate": Non
 fig.savefig(f"{FIG}/fig_r2_xla_random_paired.png", dpi=250)
 plt.close(fig)
 print("figure: fig_r2_xla_random_paired.pdf/png")
+
+# ── Appendix C: tightening curve (power_analysis.py tighten, flat model, xla:default, eval batch 8) ─
+rows = re.findall(r"^\| (\d+) \| ([\d.]+) \| ([\d.]+) \| ([\d.]+) \|$",
+                  open("experiments/power_analysis_tightening_b8.md", encoding="utf-8").read(), re.M)
+n_g, med, p05, p95 = np.array(rows, dtype=float).T
+fig, ax = plt.subplots(figsize=(3.3, 1.9))
+ax.fill_between(n_g, p05, p95, color=GRID, lw=0, label="5th–95th percentile")
+ax.plot(n_g, med, color=INK, lw=1.2, label="median")
+ax.set_xticks([2, 5, 7, 10, 15, 20])
+ax.set_xlim(2, 20); ax.set_ylim(0, 0.09)
+ax.set_xlabel("number of evaluation graphs"); ax.set_ylabel("seed-to-seed std of τ")
+ax.legend(frameon=False, fontsize=7, loc="upper right")
+for s_ in ("top", "right"):
+    ax.spines[s_].set_visible(False)
+fig.tight_layout(pad=0.3)
+fig.savefig(f"{FIG}/appendix_tightening_b8.png", dpi=300)
+plt.close(fig)
+print("figure: appendix_tightening_b8.png")
 
 # ── Appendix A: Top-K slowdown contrasts on every collection (O9 files, eval batch 8) ─────────
 TOPK = [("xla:random, lr 1e-3", "xla_random"), ("xla:default, lr 1e-3", "xla_default"),

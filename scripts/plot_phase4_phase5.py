@@ -86,13 +86,23 @@ def plot_phase5() -> None:
     out = FIG / "phase5_conv_failure.png"
     fig.savefig(out, dpi=150)
     print(f"wrote {out.relative_to(ROOT)}")
-    # Paper version (FIG 4): same plot at column width, title removed (the caption carries it).
-    ax.set_title(""); fig.set_size_inches(3.3, 2.3)
-    for t in ax.texts: t.set_fontsize(6.5)
-    ax.tick_params(labelsize=6.5)
-    ax.set_xlabel("Mean Top-1 slowdown (1.0 = optimal)", fontsize=7)
-    ax.legend(handles, list(FAM_COLOR.keys()), loc="lower right", fontsize=6, title="network family",
-              title_fontsize=6.5)
+    plt.close(fig)
+    # Paper version (FIG 4): redrawn at column width in the style of scripts/paper_figures.py.
+    PAPER_COLOR = {"convolution": "#0f766e", "transformer": "#6e7781", "memory-bound (UNet)": "#c4cad0"}
+    plt.rcParams.update({"font.family": "serif", "font.size": 8, "axes.linewidth": 0.6,
+                         "xtick.major.width": 0.6, "ytick.major.width": 0.6, "pdf.fonttype": 42})
+    fig, ax = plt.subplots(figsize=(3.3, 2.0))
+    ax.barh(y, vals, left=0, height=0.72, color=[PAPER_COLOR[r[2]] for r in rows])
+    for yi, v in zip(y, vals):
+        ax.text(v + 0.008, yi, f"{v:.2f}", va="center", fontsize=7, color="#1f2328")
+    ax.set_yticks(y); ax.set_yticklabels(labels, fontsize=7)
+    ax.set_xlim(1.0, 1.62)
+    ax.set_xlabel("Mean Top-1 slowdown (1.0 = optimal)")
+    ax.tick_params(axis="y", length=0)
+    for s_ in ("top", "right"):
+        ax.spines[s_].set_visible(False)
+    handles = [plt.Rectangle((0, 0), 1, 1, color=c) for c in PAPER_COLOR.values()]
+    ax.legend(handles, list(PAPER_COLOR.keys()), loc="lower right", fontsize=7, frameon=False)
     fig.tight_layout()
     for ext in ("pdf", "png"):
         paper_out = ROOT / "paper" / "figures" / f"fig_c1_conv_failure.{ext}"

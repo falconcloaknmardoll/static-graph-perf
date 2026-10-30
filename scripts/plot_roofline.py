@@ -68,6 +68,44 @@ def load_conv_points(stem: str):
     return ai[ok], util[ok], macs[ok]
 
 
+def paper_figure(summary) -> None:
+    """Appendix version: page width, no titles, legend clear of the data."""
+    plt.rcParams.update({"font.family": "serif", "font.size": 8, "axes.linewidth": 0.6,
+                         "xtick.major.width": 0.6, "ytick.major.width": 0.6})
+    fig, (axA, axB) = plt.subplots(
+        1, 2, figsize=(6.9, 2.7), gridspec_kw={"width_ratios": [1.7, 1.0]})
+    for (stem, _, _, _), (label, slow, ai_w, util_w, n, color) in zip(GRAPHS, summary):
+        ai, util, macs = load_conv_points(stem)
+        size = 4 + 34 * (np.log10(macs) - 7.5).clip(0, 3) / 3
+        axA.scatter(ai, util, s=size, alpha=0.6, color=color, edgecolors="white", linewidths=0.25,
+                    label=f"{label.replace(' (mem-bound)', '')} ({slow:.2f})")
+    axA.axvline(RIDGE_BF16, color="#6e7781", ls=(0, (2, 2)), lw=0.6)
+    axA.text(RIDGE_BF16 * 1.15, 0.05, "TPU v3 ridge ≈137 FLOP/byte", fontsize=7, color="#6e7781")
+    axA.set_xscale("log")
+    axA.set_xlabel("Arithmetic intensity (FLOP/byte at bf16)")
+    axA.set_ylabel("MXU packing utilisation")
+    axA.set_ylim(0, 1.05)
+    axA.legend(loc="lower left", bbox_to_anchor=(0, 1.0), ncol=4, frameon=False, fontsize=7,
+               handletextpad=0.1, columnspacing=0.8, borderpad=0, borderaxespad=0.3)
+    ys = np.arange(len(summary))[::-1]
+    for y, (label, slow, ai_w, util_w, n, color) in zip(ys, summary):
+        axB.barh(y, slow - 1.0, left=1.0, color=color, height=0.68)
+        axB.text(slow + 0.012, y, f"{slow:.2f}", fontsize=7, va="center", color="#1f2328")
+    axB.set_yticks(ys)
+    axB.set_yticklabels([f"{l.replace(' (mem-bound)', '')}\nintensity {a:,.0f}, util {u:.2f}"
+                         for l, _, a, u, _, _ in summary], fontsize=7)
+    axB.tick_params(axis="y", length=0)
+    axB.set_xlim(1.0, 1.62)
+    axB.set_xticks([1.0, 1.2, 1.4, 1.6]); axB.set_xlabel("Top-1 slowdown")
+    for ax in (axA, axB):
+        for s_ in ("top", "right"):
+            ax.spines[s_].set_visible(False)
+    fig.tight_layout(pad=0.3)
+    fig.savefig("paper/figures/appendix_roofline.png", dpi=300)
+    plt.close(fig)
+    print("wrote paper/figures/appendix_roofline.png")
+
+
 def main() -> int:
     fig, (axA, axB) = plt.subplots(
         1, 2, figsize=(12.5, 5.2), gridspec_kw={"width_ratios": [1.6, 1.0]})
@@ -121,6 +159,9 @@ def main() -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=170, bbox_inches="tight")
     print(f"wrote {out}")
+
+    plt.close(fig)
+    paper_figure(summary)
 
     print(f"\n{'graph':<24}{'slowdown':>9}{'MAC-wtd AI':>12}{'MAC-wtd util':>13}{'#conv':>7}")
     for label, slow, ai_w, util_w, n, _ in summary:
