@@ -84,9 +84,9 @@ so the comparison between the two oracle runs is descriptive only.
 
 \subsection{What remains open}
 \label{sec:open}
-% REVISE-IF-TIME: low 4-gram overlap with the First Draft.
-Whether any convolution gap remains after tuning is unresolved at our seed count: not detected at batch
-32, significant at batch 8. The registered reading of this outcome is that label noise, the run-to-run
-variation in measured runtimes, is the deeper limit, but our test cannot separate label noise from
-information missing from the graph. Answering the question needs more seeds and more convolution graphs
-than three graphs from two families.
+Whether any convolution gap remains after tuning is unresolved at our seed count as the gap was
+inconclusive (not detected) at batch 32 and only significant at batch 8. The registered reading of
+this outcome is that label noise, which is the variation in measured runtimes from run-to-run, is
+the deeper limit, but our test cannot separate label noise from information missing from the graph.
+Answering the question would potentially need more seeds and more convolution graphs than three
+graphs from two families.

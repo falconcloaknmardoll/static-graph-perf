@@ -1,9 +1,7 @@
 \section{Recommendations and Released Artifacts}
 \label{sec:recs}
-% AI-written (0% 4-gram overlap with the First Draft): rewrite the whole section.
 % Link = the ANONYMOUS repository only (never the live repo or wandb).
-\REWRITE
-Our results suggest six practices for comparing learned cost models. The first three correspond to
+Based on our results, we propose six changes to practices for comparing learned cost models. The first three correspond to
 audit Axes 1--3; the fourth catches what those three miss, as Section~\ref{sec:tuning} shows.
 \begin{enumerate}
 \item Report the seed-to-seed spread of the headline difference, and pair seeds across arms.
@@ -13,13 +11,13 @@ audit Axes 1--3; the fourth catches what those three miss, as Section~\ref{sec:t
   curves.
 \item Compute the minimum detectable effect before running, choose seeds and evaluation graphs so the
   claimed effect lies above it, and read every null against it.
-\item Report evaluation choices that can change a verdict, such as the evaluation batch under
+\item Report evaluation choices that have the potential to change a verdict, such as the evaluation batch under
   batch-statistic normalisation.
 \end{enumerate}
 
-To support these practices we release, in an anonymous repository for review
-(\url{https://github.com/falconcloaknmardoll/static-graph-perf}), the protocol, every
+To support these practices, we release, in an anonymous repository for review
+(\url{https://github.com/falconcloaknmardoll/static-graph-perf}), the following: the protocol, every
 pre-registration with its amendments and commit history, the 140-feature map naming each node feature
 (including those that carry convolution sizes), and \texttt{power\_analysis.py}. Given seed noise, the
-tool returns the MDE for $n$ paired seeds; given per-graph $\tau$, it estimates how fast the aggregate's
+tool returns the MDE for $n$ paired seeds, and when given a per-graph $\tau$, it estimates how fast the aggregate's
 spread shrinks as evaluation graphs are added.

@@ -26,26 +26,23 @@ at three levels:
 \item Can current evaluation practice detect effects of this size?
 \end{enumerate}
 
-% AI-worded (6% 4-gram overlap with the First Draft): rewrite.
-\REWRITE
-At each level the answer turns on baseline strength. First, added structure gives no detectable gain
-over a matched flat model in any of the four collections once the baseline is tuned: on xla:default, an
-apparent $+0.165$ $\tau$ at a shared learning rate falls to $+0.002$ ($p = .88$). Second, convolution
-graphs are $2.8\times$ more layout-sensitive than other graphs in measured runtimes, but a per-node MXU
-feature that narrows convolution slowdown from 1.42 to 1.12 at the shared rate leaves a gain below
-detection ($-0.03$, $p = .17$) against a tuned baseline. Third, a result can pass seed,
-parameter-matching and significance checks and still be a baseline artefact, as our own $+0.165$ did.
-All results are on TPUGraphs' validation graphs with runtimes Google measured; we ran no TPU.
+At each level the answer turns on baseline strength. First, our tested alterations (hierarchy and
+contention edges) to graph structure provided no detectable gain over a flat matched model in any of
+the 4 collections once the baseline is tuned: on xla:default, an apparent $+0.165$ $\tau$ at a
+shared learning rate falls to $+0.002$ ($p = .88$). Second, convolution graphs are $2.8\times$ more
+layout-sensitive than other graphs in measured runtimes, but a per-node MXU feature that narrows
+convolution slowdown from 1.42 to 1.12 at the shared rate leaves a gain below detection ($-0.03$, $p
+= .17$) against a tuned baseline. Third, a result that can pass seed, parameter-matching and
+significance checks can still be a baseline artefact, as our own $+0.165$ was. All results are on
+TPUGraphs' validation graphs with runtimes Google measured; we ran no TPU.
 
-% AI-worded (0% 4-gram overlap with the First Draft): rewrite.
-\REWRITE
 Our contributions are:
 \begin{itemize}
-\item A controlled, power-analysed protocol for comparing learned cost models, applied to all four
+\item A controlled and power-analysed protocol for comparing learned cost models, applied to all four
   TPUGraphs layout collections.
 \item A model-free measurement that localises the information gap to convolution on the MXU.
 \item A pre-registered test of whether per-node MXU geometry closes that gap, with a scramble control, a
   tuned-baseline check and an oracle ceiling.
-\item An audit of evaluation practice, concrete recommendations (Section~\ref{sec:recs}), and the
-  released protocol and power-analysis tool.
+\item An audit of evaluation practice across papers in the field along with concrete recommendations
+  (Section~\ref{sec:recs}), the released protocol and the power-analysis tool.
 \end{itemize}
